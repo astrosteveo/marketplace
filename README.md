@@ -26,7 +26,7 @@ A comprehensive software development workflow built on composable skills that gu
 **Install:**
 ```bash
 /plugin marketplace add astrosteveo/harness-mp
-/plugin install harness@harness-marketplace
+/plugin install harness@harness-mp
 ```
 
 **Learn more:** [plugins/harness/README.md](plugins/harness/README.md)
