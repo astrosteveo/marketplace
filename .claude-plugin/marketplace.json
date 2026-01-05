@@ -1,31 +1,20 @@
 {
-  "name": "astrosteveo-plugins",
-  "description": "A collection of Claude plugins developed by astrosteveo to enhance productivity and project management.",
+  "name": "harness-mp",
+  "description": "A collection of plugins that keeps Claude Code harnessed and under control",
   "owner": {
     "name": "astrosteveo"
   },
   "plugins": [
     {
-      "name": "agent-workflow",
-      "description": "A rigorous, systematic development workflow for coding agents. Enforces discovery, planning, TDD, and review phases to keep agents on track.",
-      "author": {
-        "name": "Jesse Vincent (original author), Steven Mosley",
-        "email": "jesse@fsck.com, stevengmjr@gmail.com"
-      },
-      "source": "./plugins/agent-workflow",
-      "category": "development",
-      "homepage": "https://github.com/astrosteveo/claude-code-plugins"
-    },
-    {
-      "name": "explore-plan-implement-commit",
-      "description": "Adaptive development workflow for all skill levels. Guides users from brainstorming through exploration, design, planning, implementation, and commit.",
+      "name": "harness",
+      "description": "Core skills library to keep Claude Code harnessed and under control",
       "author": {
         "name": "Steven Mosley",
         "email": "stevengmjr@gmail.com"
       },
-      "source": "./plugins/explore-plan-implement-commit",
+      "source": "./plugins/harness",
       "category": "development",
-      "homepage": "https://github.com/astrosteveo/claude-code-plugins"
+      "homepage": "https://github.com/astrosteveo/harness-mp"
     }
   ]
 }
