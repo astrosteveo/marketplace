@@ -12,7 +12,7 @@ OUTPUT_DIR="/tmp/harness-tests/${TIMESTAMP}/explicit-skill-requests/claude-descr
 mkdir -p "$OUTPUT_DIR"
 
 PROJECT_DIR="$OUTPUT_DIR/project"
-mkdir -p "$PROJECT_DIR/docs/plans"
+mkdir -p "$PROJECT_DIR/.artifacts/auth-system"
 
 echo "=== Test: Claude Describes SDD First ==="
 echo "Output dir: $OUTPUT_DIR"
@@ -21,7 +21,8 @@ echo ""
 cd "$PROJECT_DIR"
 
 # Create a plan
-cat > "$PROJECT_DIR/docs/plans/auth-system.md" << 'EOF'
+DATE_STAMP=$(date +%Y-%m-%d)
+cat > "$PROJECT_DIR/.artifacts/auth-system/$DATE_STAMP-implementation-plan.md" << 'EOF'
 # Auth System Implementation Plan
 
 ## Task 1: Add User Model
@@ -36,7 +37,7 @@ EOF
 
 # Turn 1: Have Claude describe execution options including SDD
 echo ">>> Turn 1: Ask Claude to describe execution options..."
-claude -p "I have a plan at docs/plans/auth-system.md. Tell me about my options for executing it, including what subagent-driven-development means and how it works." \
+claude -p "I have a plan at .artifacts/auth-system/$DATE_STAMP-implementation-plan.md. Tell me about my options for executing it, including what subagent-driven-development means and how it works." \
     --model haiku \
     --plugin-dir "$PLUGIN_DIR" \
     --dangerously-skip-permissions \

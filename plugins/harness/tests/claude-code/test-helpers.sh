@@ -139,11 +139,13 @@ cleanup_test_project() {
 }
 
 # Create a simple plan file for testing
-# Usage: create_test_plan "$project_dir" "$plan_name"
+# Usage: create_test_plan "$project_dir" "$feature_name" "$artifact_type"
 create_test_plan() {
     local project_dir="$1"
-    local plan_name="${2:-test-plan}"
-    local plan_file="$project_dir/docs/plans/$plan_name.md"
+    local feature_name="${2:-test-feature}"
+    local artifact_type="${3:-implementation-plan}"
+    local date_stamp=$(date +%Y-%m-%d)
+    local plan_file="$project_dir/.artifacts/$feature_name/$date_stamp-$artifact_type.md"
 
     mkdir -p "$(dirname "$plan_file")"
 

@@ -15,7 +15,22 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `.artifacts/<feature-name>/YYYY-MM-DD-implementation-plan.md`
+
+**Determining feature name:**
+
+1. **Check recent context:**
+   - If brainstorming skill ran in this session, extract feature name from design file path
+   - Example: `.artifacts/oauth-service/2026-01-05-design.md` → feature is `oauth-service`
+
+2. **If no recent design:**
+   - List existing `.artifacts/` directories
+   - Ask user: "Which feature is this plan for?" (show list)
+   - Or: "Is this a new feature?" (derive from context with confirmation)
+
+3. **Verify directory exists:**
+   - Create `.artifacts/<feature-name>/` if needed
+   - Save plan to `.artifacts/<feature-name>/YYYY-MM-DD-implementation-plan.md`
 
 ## Bite-Sized Task Granularity
 
@@ -98,7 +113,7 @@ git commit -m "feat: add specific feature"
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `.artifacts/<feature-name>/YYYY-MM-DD-implementation-plan.md`. Two execution options:**
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 

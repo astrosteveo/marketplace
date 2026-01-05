@@ -16,6 +16,12 @@ Load plan, review critically, execute tasks in batches, report for review betwee
 ## The Process
 
 ### Step 1: Load and Review Plan
+
+**Plan file location:**
+- User provides path: `.artifacts/<feature-name>/YYYY-MM-DD-implementation-plan.md`
+- Example: `.artifacts/oauth-service/2026-01-06-implementation-plan.md`
+- Feature name is encoded in the directory path
+
 1. Read plan file
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting

@@ -35,17 +35,31 @@ Start by understanding the current project context, then ask questions one at a 
 ## After the Design
 
 **Documentation:**
-- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
-- Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+
+1. **Determine feature name:**
+   - Extract topic from conversation (e.g., "OAuth service" → `oauth-service`)
+   - Check for existing `.artifacts/` directories
+   - If found: Ask "This seems related to [existing-feature]. Use that directory or create new?"
+   - If new: Confirm derived name: "I'll save to `.artifacts/<derived-name>/`. Okay?"
+   - Allow user to specify different name if needed
+
+2. **Save design:**
+   - Create `.artifacts/<feature-name>/` directory if needed
+   - Write design to `.artifacts/<feature-name>/YYYY-MM-DD-design.md`
+   - Use elements-of-style:writing-clearly-and-concisely skill if available
+
+3. **Commit:**
+   - Commit the design document to git
+   - Include feature name in commit message: `docs: add <feature-name> design`
 
 **Implementation (if continuing):**
 - Ask: "Ready to set up for implementation?"
-- Use harness:using-git-worktrees to create isolated workspace
+- Use `/using-git-worktrees` to create isolated workspace
 - Use harness:writing-plans to create detailed implementation plan
 
 ## Key Principles
 
+- **Use the `AskUserQuestion` tool** - ALWAYS use it to ask questions instead of just plain messages
 - **One question at a time** - Don't overwhelm with multiple questions
 - **Multiple choice preferred** - Easier to answer than open-ended when possible
 - **YAGNI ruthlessly** - Remove unnecessary features from all designs
