@@ -25,7 +25,7 @@
       },
       "license": "MIT",
       "keywords": ["development", "plugins", "toolkit"],
-      "source": "./plugins/harness",
+      "source": "./plugins/plugin-dev",
       "category": "development",
       "homepage": "https://github.com/astrosteveo/harness-mp"
     }
