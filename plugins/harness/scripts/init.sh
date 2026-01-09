@@ -14,7 +14,9 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Configuration
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-.}"
+# Derive plugin root from script location if not set
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$SCRIPT_DIR")}"
 DEST="${CLAUDE_PROJECT_DIR:-.}/.claude"
 FORCE=false
 DRY_RUN=false
