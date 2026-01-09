@@ -3,7 +3,7 @@
   "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
   "author": {
     "name": "Steven Mosley",
-    "email": "stevengmjr@gmail.com"
+    "email": "34114851+astrosteveo@users.noreply.github.com"
   },
   "homepage": "https://github.com/astrosteveo/harness",
   "repository": "https://github.com/astrosteveo/harness",
@@ -13,7 +13,7 @@
     "tdd",
     "debugging",
     "collaboration",
-    "best-practices",
+    "testing",
     "workflows"
   ]
 }
