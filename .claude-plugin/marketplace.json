@@ -1,46 +1,35 @@
 {
   "name": "harness-mp",
-  "description": "A collection of plugins that keeps Claude Code harnessed and under control",
+  "description": "Personal plugin marketplace - feature workflows and semantic memory for Claude Code",
   "owner": {
     "name": "astrosteveo"
   },
   "plugins": [
     {
       "name": "harness",
-      "description": "Skills and agents for feature development workflows",
-      "author": {
-        "name": "Steven Mosley",
-        "email": "34114851+astrosteveo@users.noreply.github.com"
-      },
-      "source": "./plugins/harness",
-      "category": "development",
-      "homepage": "https://github.com/astrosteveo/harness-mp"
-    },
-    {
-      "name": "plugin-dev",
-      "description": "Skills and agents for Claude Code plugin development",
+      "description": "Feature development workflow and plugin creation skills",
       "author": {
         "name": "Steven Mosley",
         "email": "34114851+astrosteveo@users.noreply.github.com"
       },
       "license": "MIT",
-      "keywords": ["development", "plugins", "toolkit"],
-      "source": "./plugins/plugin-dev",
+      "keywords": ["workflow", "feature-development", "plugins", "skills", "orchestration"],
+      "source": "~/workspace/harness",
       "category": "development",
-      "homepage": "https://github.com/astrosteveo/harness-mp"
+      "homepage": "https://github.com/astrosteveo/harness"
     },
     {
-      "name": "megatron",
-      "description": "Semantic memory for Claude Code - carry context across sessions",
+      "name": "engram",
+      "description": "Semantic memory for Claude Code - persistent context across sessions",
       "author": {
         "name": "Steven Mosley",
         "email": "34114851+astrosteveo@users.noreply.github.com"
       },
       "license": "MIT",
       "keywords": ["memory", "context", "persistence", "semantic-search"],
-      "source": "./plugins/megatron",
+      "source": "~/workspace/engram",
       "category": "productivity",
-      "homepage": "https://github.com/astrosteveo/claude-memory"
+      "homepage": "https://github.com/astrosteveo/engram"
     }
   ]
 }

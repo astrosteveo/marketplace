@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "megatron": {
-      "command": "uv",
-      "args": ["run", "--project", ".claude/megatron", "megatron-mcp"],
-      "env": {}
-    }
-  }
-}
