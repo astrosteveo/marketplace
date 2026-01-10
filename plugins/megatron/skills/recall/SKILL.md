@@ -41,5 +41,5 @@ When the user invokes `/recall` with a query (or asks you to remember/recall som
 ## Notes
 
 - Results include relevance scores (higher is more relevant)
-- Memory is project-local - stored in `.claude-memory/` in each project
+- Memory is project-local - stored in `.megatron/` in each project
 - The search is semantic, not keyword-exact

@@ -47,6 +47,6 @@ You are helping the user seamlessly continue their work from a previous session.
 
 ## Notes
 
-- Project memory is stored in `.claude-memory/` in the project root
+- Project memory is stored in `.megatron/` in the project root
 - Each project has its own isolated memory
 - The resume context is automatically available if the megatron-mcp plugin is installed

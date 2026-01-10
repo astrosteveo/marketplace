@@ -40,7 +40,7 @@ This plugin auto-registers the MCP server when installed.
 
 ```
 Working on feature...
-├─ Every exchange → indexed to .claude-memory/
+├─ Every exchange → indexed to .megatron/
 ├─ Todos, plan files, decisions → all captured
 │
 ├─ "oh shit context full"
