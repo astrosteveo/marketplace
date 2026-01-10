@@ -17,6 +17,8 @@ And everything is there - what you were working on, your todos, your progress.
 - `/megatron:recall <query>` - Search your semantic memory for past conversations
 - `/megatron:resume` - Get context to continue where you left off
 - `/megatron:sync` - Save the current session to memory
+- `/megatron:remember <content>` - Explicitly save something important
+- `/megatron:stats` - Show memory statistics
 
 ## Prerequisites
 
