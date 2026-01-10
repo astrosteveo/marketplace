@@ -14,8 +14,8 @@ And everything is there - what you were working on, your todos, your progress.
 
 ## Skills
 
-- `/recall <query>` - Search your semantic memory for past conversations
-- `/resume` - Get context to continue where you left off
+- `/megatron:recall <query>` - Search your semantic memory for past conversations
+- `/megatron:resume` - Get context to continue where you left off
 
 ## Prerequisites
 

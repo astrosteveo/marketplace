@@ -9,7 +9,7 @@ You are helping the user search and explore their semantic memory - a database o
 
 ## How to Use This Skill
 
-When the user invokes `/recall` with a query (or asks you to remember/recall something):
+When the user invokes `/megatron:recall` with a query (or asks you to remember/megatron:recall something):
 
 1. **Use the `mcp__megatron__memory_search` tool** with the user's query
 2. **Analyze and summarize** the results:
@@ -20,11 +20,11 @@ When the user invokes `/recall` with a query (or asks you to remember/recall som
 
 ## Example Interactions
 
-**User:** `/recall authentication system`
+**User:** `/megatron:recall authentication system`
 
 **You:** Search for authentication-related conversations using `mcp__megatron__memory_search`, then summarize what was discussed, decisions made, and any code patterns used.
 
-**User:** `/recall` (no query)
+**User:** `/megatron:recall` (no query)
 
 **You:** Ask what they'd like to remember, or use `mcp__megatron__memory_stats` to show what's indexed.
 
