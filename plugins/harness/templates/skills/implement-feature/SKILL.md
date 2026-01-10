@@ -1,5 +1,5 @@
 ---
-name: implement-feature
+name: harness:implement-feature
 description: Builds a feature following the designed architecture. Creates implementation plan, writes code following codebase conventions, and commits frequently. Use after architecture design is approved.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite, Skill
 context: fork

@@ -1,5 +1,5 @@
 ---
-name: verify-testing
+name: harness:verify-testing
 description: Generates manual testing checklist based on requirements and guides user through verification. Tracks test results and handles issue fixes. Use after code review to verify the feature works correctly.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite
 context: fork

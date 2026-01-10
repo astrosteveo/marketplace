@@ -1,5 +1,5 @@
 ---
-name: orchestrator
+name: harness:orchestrator
 description: Guided feature development with codebase understanding and architecture focus. Orchestrates the full feature development workflow from discovery through summary.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite, Task, Skill
 ---
