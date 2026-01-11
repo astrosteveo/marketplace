@@ -1,0 +1,9 @@
+{
+  "hooks": [
+    {
+      "event": "PostToolUse",
+      "command": "engram-live-index",
+      "timeout": 5000
+    }
+  ]
+}
