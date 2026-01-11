@@ -1,9 +1,16 @@
 {
-  "hooks": [
-    {
-      "event": "PostToolUse",
-      "command": "engram-live-index",
-      "timeout": 5000
-    }
-  ]
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "engram-live-index",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
 }

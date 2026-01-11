@@ -1,5 +1,6 @@
 {
   "name": "harness",
+  "version": "1.0.0",
   "description": "Feature development workflow and plugin creation skills for Claude Code",
   "author": {
     "name": "Steven Mosley",
