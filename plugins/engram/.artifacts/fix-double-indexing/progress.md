@@ -201,11 +201,21 @@ This causes:
 - Code follows existing project conventions
 
 ### Session 7 - 2026-01-11
-- Manual testing verification completed
-- All 5 tests PASSED:
+- Automated unit tests completed (all PASS):
   - Test 1: New chunk ID format ✓ (test-session:exchange:msg-001)
   - Test 2: Cleanup command exists ✓ (visible in engram --help)
   - Test 3: Cleanup removes old duplicates ✓ (2 chunks → 1 chunk)
   - Test 4: Live + batch no duplicates ✓ (upsert works correctly)
   - Test 5: Search quality not degraded ✓ (relevant results, no duplicates)
+
+- Integration tests on live engram project (all PASS):
+  - `engram stats`: 37 chunks initially
+  - `engram cleanup`: Scanned 37, removed 0 (no pre-existing duplicates)
+  - `engram sync`: Synced 65 chunks from transcript
+  - `engram stats`: 86 chunks after sync
+  - `engram cleanup`: Scanned 86, removed 0 (no duplicates created!)
+  - `engram search "double indexing"`: Relevant results, score 0.592
+  - `engram search "semantic memory engine"`: Relevant results, score 0.729
+
+- Conclusion: New ID format works correctly - batch sync upserts match live indexer IDs
 - Feature is ready for release
