@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Live indexer wrapper - runs without requiring pip install
-# Uses uvx to run the engram package directly
+# Live indexer wrapper - runs local engram with dependencies
 
-uvx --from "git+https://github.com/astrosteveo/engram" engram-live-index
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
+
+cd "$PLUGIN_DIR" && uv run engram-live-index
