@@ -8,20 +8,10 @@ CACHE_BASE="$HOME/.claude/plugins/cache/astrosteveo-marketplace"
 DEV_BASE="$HOME/workspace/marketplace/plugins"
 DEV_VERSION="9.9.9-dev"
 
-# Plugins to link
-PLUGINS=(
-    "harness"
-    "engram-mcp"
-)
-
-for plugin in "${PLUGINS[@]}"; do
+# Discover all plugins dynamically
+for dev_path in "$DEV_BASE"/*/; do
+    plugin=$(basename "$dev_path")
     cache_path="$CACHE_BASE/$plugin/$DEV_VERSION"
-    dev_path="$DEV_BASE/$plugin"
-
-    if [[ ! -d "$dev_path" ]]; then
-        echo "⚠️  Skip $plugin - not found in dev repo"
-        continue
-    fi
 
     if [[ -L "$cache_path" ]]; then
         echo "✓  $plugin already linked"
@@ -33,6 +23,7 @@ for plugin in "${PLUGINS[@]}"; do
         rm -rf "$cache_path"
     else
         echo "→  Creating $plugin symlink"
+        mkdir -p "$(dirname "$cache_path")"
     fi
 
     ln -sf "$dev_path" "$cache_path"
