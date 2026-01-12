@@ -1,5 +1,6 @@
 {
   "name": "engram-mcp",
+  "version": "9.9.9-dev",
   "description": "Semantic memory for Claude Code - persistent context across sessions",
   "author": {
     "name": "Steven Mosley",
