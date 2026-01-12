@@ -12,7 +12,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit|Bash|TodoWrite",
+        "matcher": "Edit|Write|MultiEdit|Bash|TodoWrite|Read|Glob|Grep|WebSearch|WebFetch|Task",
         "hooks": [
           {
             "type": "command",
