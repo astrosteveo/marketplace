@@ -80,7 +80,7 @@ Perform 2-4 web searches based on the feature type:
 
 ```
 WebSearch
-  query: "{feature_description} best practices 2025"
+  query: "{feature_description} best practices 2026"
 ```
 
 ```
@@ -96,7 +96,7 @@ WebSearch
 If relevant frameworks or libraries might help:
 ```
 WebSearch
-  query: "{feature_type} libraries frameworks comparison 2025"
+  query: "{feature_type} libraries frameworks comparison 2026"
 ```
 
 **What to look for:**
