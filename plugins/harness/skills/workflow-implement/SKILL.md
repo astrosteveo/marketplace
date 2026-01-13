@@ -37,6 +37,13 @@ hooks:
 
 This phase implements the feature according to the approved design.
 
+**Phase Requirements (in order):**
+1. Read design.md and requirements.md
+2. **Create plan.md** (MUST exist before coding)
+3. **Present plan and get user approval** (MUST wait for confirmation)
+4. Implement according to plan
+5. Update progress.md with results
+
 ## Context
 
 **If invoked via orchestrator:** Receives `$ARGUMENTS`:
@@ -80,9 +87,11 @@ Edit `progress.md`:
 - Check off "Architecture Design"
 - Add session log entry
 
-### Step 3: Create Implementation Plan
+### Step 3: Create Implementation Plan (REQUIRED)
 
-Based on design.md, create `.artifacts/{slug}/plan.md`:
+**CRITICAL:** Before writing ANY code, create `.artifacts/{slug}/plan.md` using the Write tool.
+
+This file MUST exist before proceeding. Based on design.md, write this file:
 
 ```markdown
 # {Feature Name} - Implementation Plan
@@ -120,15 +129,17 @@ Based on design.md, create `.artifacts/{slug}/plan.md`:
 {Logical commit points}
 ```
 
-### Step 4: Present Plan for Approval
+### Step 4: Present Plan for Approval (REQUIRED)
 
-Present the implementation plan to user.
+After creating plan.md, present it to the user.
 
-**PAUSE POINT**
+**PAUSE POINT - DO NOT SKIP**
 
-Ask: "Ready to proceed with implementation?"
+1. Show the plan contents to the user
+2. Ask: "Ready to proceed with implementation?"
+3. **STOP and wait for explicit approval**
 
-Wait for approval before writing any code.
+Do NOT write any code until the user confirms.
 
 ### Step 5: Implement (Standard Mode)
 
