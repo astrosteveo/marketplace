@@ -22,6 +22,25 @@ allowed-tools:
   - AskUserQuestion
   - mcp__plugin_engram-mcp_engram__*
 hooks:
+  PreToolUse:
+    - matcher: Write|Edit
+      prompt: |
+        Check if this file operation should be allowed:
+
+        Tool: $TOOL_NAME
+        File: $TOOL_INPUT.file_path
+
+        RULES:
+        1. ALLOW if file path contains ".artifacts/" (artifact files are always OK)
+        2. ALLOW if file path ends with "plan.md" (creating the plan is required)
+        3. BLOCK if plan.md does not exist yet in .artifacts/{feature-slug}/
+           - Output: "BLOCK: Must create plan.md before writing code. Run: ls .artifacts/*/plan.md"
+        4. ALLOW if plan.md exists (implementation can proceed)
+
+        To check if plan.md exists, consider the conversation context.
+        If uncertain whether plan.md exists, ALLOW and let the Stop hook catch it.
+
+        Output either "ALLOW" or "BLOCK: {reason}"
   Stop:
     - prompt: |
         Before completing, validate:
