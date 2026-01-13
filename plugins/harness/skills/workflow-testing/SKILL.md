@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-testing
-description: This skill should be used when the user asks to "test the feature", "verify it works", "run manual testing", or when the harness:feature orchestrator invokes the Testing phase.
+name: workflow-testing
+description: This skill should be used when the user asks to "test the feature", "verify it works", "run manual testing", or when the feature orchestrator invokes the Testing phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-testing.sh"
-          timeout: 10
 ---
 
 # Testing Phase - User Verification

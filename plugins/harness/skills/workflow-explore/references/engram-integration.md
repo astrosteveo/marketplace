@@ -162,7 +162,7 @@ mcp__plugin_engram-mcp_engram__memory_remember
 
 **Day 2:** User returns.
 
-1. `/harness:feature-v2 "dark mode"` or `/engram:resume`
+1. `/feature-v2 "dark mode"` or `/engram:resume`
 2. Orchestrator finds `.artifacts/dark-mode/progress.md`
 3. Orchestrator searches engram:
    ```

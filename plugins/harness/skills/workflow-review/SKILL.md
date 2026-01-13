@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-review
-description: This skill should be used when the user asks to "review the code", "check for issues", "code review", or when the harness:feature orchestrator invokes the Review phase.
+name: workflow-review
+description: This skill should be used when the user asks to "review the code", "check for issues", "code review", or when the feature orchestrator invokes the Review phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-review.sh"
-          timeout: 10
 ---
 
 # Review Phase - Code Quality Verification
@@ -66,7 +65,7 @@ Launch 3 parallel agents:
 **Agent 1: Code Quality**
 ```
 Task
-  subagent_type: "harness:code-reviewer"
+  subagent_type: "code-reviewer"
   prompt: "Review for CODE QUALITY:
            Files: {changed files}
            
@@ -79,7 +78,7 @@ Task
 **Agent 2: Bugs and Logic**
 ```
 Task
-  subagent_type: "harness:code-reviewer"
+  subagent_type: "code-reviewer"
   prompt: "Review for BUGS AND LOGIC:
            Files: {changed files}
            Requirements: {from requirements.md}
@@ -93,7 +92,7 @@ Task
 **Agent 3: Consistency**
 ```
 Task
-  subagent_type: "harness:code-reviewer"
+  subagent_type: "code-reviewer"
   prompt: "Review for CONSISTENCY:
            Files: {changed files}
            Patterns: {from exploration}

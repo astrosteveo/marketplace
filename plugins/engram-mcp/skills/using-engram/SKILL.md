@@ -1,5 +1,5 @@
 ---
-name: engram:using-engram
+name: using-engram
 description: This skill should be used when the user asks about "engram memory", "how to use memory tools", "semantic search in Claude", "persist context across sessions", "remember things for later", or needs guidance on using engram MCP tools effectively.
 user-invocable: false
 ---

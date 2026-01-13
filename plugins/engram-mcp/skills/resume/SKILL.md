@@ -1,5 +1,5 @@
 ---
-name: engram:resume
+name: resume
 description: This skill should be used when the user asks to "resume work", "continue where we left off", "what were we working on", "pick up from last session", or starts a session wanting context from previous work.
 context: fork
 allowed-tools:
@@ -173,6 +173,6 @@ Resume context is assembled from:
 
 ## Tips
 
-- Run `/engram:resume` at the start of any session after a break
+- Run `/resume` at the start of any session after a break
 - The more you use engram tools, the richer the resume context becomes
 - Decisions and lessons are especially valuable for long-running projects

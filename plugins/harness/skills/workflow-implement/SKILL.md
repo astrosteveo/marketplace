@@ -1,6 +1,6 @@
 ---
-name: harness:workflow-implement
-description: This skill should be used when the user asks to "implement the feature", "write the code", "build it", or when the harness:feature orchestrator invokes the Implement phase.
+name: workflow-implement
+description: This skill should be used when the user asks to "implement the feature", "write the code", "build it", or when the feature orchestrator invokes the Implement phase.
 context: fork
 hooks:
   PreToolUse:
@@ -8,12 +8,10 @@ hooks:
       hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-implement-pretool.sh"
-          timeout: 5
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-implement.sh"
-          timeout: 10
 ---
 
 # Implement Phase - Building the Feature

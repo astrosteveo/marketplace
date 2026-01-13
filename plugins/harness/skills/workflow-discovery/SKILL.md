@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-discovery
-description: This skill should be used when the user asks to "start a new feature", "initialize feature tracking", "begin feature development", or when the harness:feature orchestrator invokes the Discovery phase.
+name: workflow-discovery
+description: This skill should be used when the user asks to "start a new feature", "initialize feature tracking", "begin feature development", or when the feature orchestrator invokes the Discovery phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-discovery.sh"
-          timeout: 10
 ---
 
 # Discovery Phase - Feature Initialization

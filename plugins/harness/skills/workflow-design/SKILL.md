@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-design
-description: This skill should be used when the user asks to "design architecture", "evaluate approaches", "plan feature implementation", or when the harness:feature orchestrator invokes the Design phase.
+name: workflow-design
+description: This skill should be used when the user asks to "design architecture", "evaluate approaches", "plan feature implementation", or when the feature orchestrator invokes the Design phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-design.sh"
-          timeout: 10
 ---
 
 # Design Phase - Architecture Selection
@@ -99,7 +98,7 @@ Launch 3 parallel agents. Include research context in ALL prompts:
 **Agent 1: Minimal Change**
 ```
 Task
-  subagent_type: "harness:code-architect"
+  subagent_type: "code-architect"
   prompt: "Design MINIMAL CHANGE approach for '{feature_description}'.
            Requirements: {from requirements.md}
            Patterns: {from exploration}
@@ -112,7 +111,7 @@ Task
 **Agent 2: Modern Best Practices**
 ```
 Task
-  subagent_type: "harness:code-architect"
+  subagent_type: "code-architect"
   prompt: "Design MODERN approach for '{feature_description}'.
            Requirements: {from requirements.md}
            Best practices: {from web research}
@@ -125,7 +124,7 @@ Task
 **Agent 3: Pragmatic Balance**
 ```
 Task
-  subagent_type: "harness:code-architect"
+  subagent_type: "code-architect"
   prompt: "Design PRAGMATIC approach for '{feature_description}'.
            Requirements: {from requirements.md}
            Patterns: {from exploration}

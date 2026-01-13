@@ -1,5 +1,5 @@
 ---
-name: engram:search
+name: search
 description: This skill should be used when the user asks to "search memory", "find in past sessions", "what did we decide about", "look up previous work on", or needs to retrieve specific information from project memory.
 context: fork
 allowed-tools:

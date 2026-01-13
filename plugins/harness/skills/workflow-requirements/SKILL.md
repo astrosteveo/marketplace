@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-requirements
-description: This skill should be used when the user asks to "gather requirements", "define feature requirements", "clarify feature scope", or when the harness:feature orchestrator invokes the Requirements phase.
+name: workflow-requirements
+description: This skill should be used when the user asks to "gather requirements", "define feature requirements", "clarify feature scope", or when the feature orchestrator invokes the Requirements phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-requirements.sh"
-          timeout: 10
 ---
 
 # Requirements Phase - Specification Gathering

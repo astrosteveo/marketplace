@@ -1,15 +1,6 @@
 ---
 description: Skill-based feature development workflow
 argument-hint: <feature-description> [--phase <name>] [--tdd] [--skip <phase>]
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Bash(git:*)
-  - Bash(ls:*)
-  - Skill
-  - mcp__plugin_engram-mcp_engram__*
 ---
 
 # Feature Development Orchestrator
@@ -26,14 +17,14 @@ Each phase is a skill invoked via `Skill` tool:
 
 | Phase | Skill Name | Purpose |
 |-------|------------|---------|
-| 1 | `harness:workflow-discovery` | Understand request, create tracking |
-| 2 | `harness:workflow-explore` | Map codebase patterns |
-| 3 | `harness:workflow-requirements` | Gather specifications |
-| 4 | `harness:workflow-design` | Select architecture |
-| 5 | `harness:workflow-implement` | Build the feature |
-| 6 | `harness:workflow-review` | Code quality check |
-| 7 | `harness:workflow-testing` | User verification |
-| 8 | `harness:workflow-summary` | Document completion |
+| 1 | `workflow-discovery` | Understand request, create tracking |
+| 2 | `workflow-explore` | Map codebase patterns |
+| 3 | `workflow-requirements` | Gather specifications |
+| 4 | `workflow-design` | Select architecture |
+| 5 | `workflow-implement` | Build the feature |
+| 6 | `workflow-review` | Code quality check |
+| 7 | `workflow-testing` | User verification |
+| 8 | `workflow-summary` | Document completion |
 
 ## Execution Instructions
 
@@ -79,21 +70,21 @@ If matching artifacts exist:
 
 ```
 Skill
-  skill: "harness:workflow-{phase}"
+  skill: "workflow-{phase}"
   args: "--description \"{feature_description}\" --slug {slug}"
 ```
 
 **Example for discovery phase:**
 ```
 Skill
-  skill: "harness:workflow-discovery"
+  skill: "workflow-discovery"
   args: "--description \"add dark mode toggle\""
 ```
 
 **Example for design phase with existing artifacts:**
 ```
 Skill
-  skill: "harness:workflow-design"
+  skill: "workflow-design"
   args: "--slug dark-mode-toggle --description \"add dark mode toggle\""
 ```
 
@@ -103,13 +94,13 @@ After each skill completes, invoke the next phase:
 
 | Current Phase | Next Skill |
 |---------------|------------|
-| Discovery | `harness:workflow-explore` |
-| Explore | `harness:workflow-requirements` |
-| Requirements | `harness:workflow-design` |
-| Design | `harness:workflow-implement` |
-| Implement | `harness:workflow-review` |
-| Review | `harness:workflow-testing` |
-| Testing | `harness:workflow-summary` |
+| Discovery | `workflow-explore` |
+| Explore | `workflow-requirements` |
+| Requirements | `workflow-design` |
+| Design | `workflow-implement` |
+| Implement | `workflow-review` |
+| Review | `workflow-testing` |
+| Testing | `workflow-summary` |
 | Summary | Workflow finished |
 
 ### Step 6: Handle Blocked States
@@ -154,5 +145,3 @@ Pass `--slug` to subsequent phases after discovery creates it.
 | `/harness:feature --phase design` | Jump to design phase |
 | `/harness:feature --tdd` | Enable TDD mode |
 | `/harness:feature --skip explore` | Skip explore phase |
-
-

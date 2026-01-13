@@ -1,5 +1,5 @@
 ---
-name: engram:remember
+name: remember
 description: This skill should be used when the user asks to "remember this", "save for later", "store this information", "persist this context", or wants to explicitly save important information for future sessions.
 context: fork
 allowed-tools:

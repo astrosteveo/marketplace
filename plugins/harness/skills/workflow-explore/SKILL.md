@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-explore
-description: This skill should be used when the user asks to "explore the codebase", "understand the architecture", "find patterns for a feature", or when the harness:feature orchestrator invokes the Explore phase.
+name: workflow-explore
+description: This skill should be used when the user asks to "explore the codebase", "understand the architecture", "find patterns for a feature", or when the feature orchestrator invokes the Explore phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-explore.sh"
-          timeout: 10
 ---
 
 # Explore Phase - Codebase Understanding
@@ -60,7 +59,7 @@ Launch 3 parallel agents using Task tool. ALL THREE must be launched in a SINGLE
 **Agent 1: Pattern Discovery**
 ```
 Task
-  subagent_type: "harness:code-explorer"
+  subagent_type: "code-explorer"
   prompt: "Find features similar to '{feature_description}' in this codebase.
            Identify: implementation patterns, file organization, coding conventions.
            Return: File paths with relevance notes, pattern descriptions."
@@ -69,7 +68,7 @@ Task
 **Agent 2: Architecture Mapping**
 ```
 Task
-  subagent_type: "harness:code-explorer"
+  subagent_type: "code-explorer"
   prompt: "Map architecture relevant to '{feature_description}'.
            Identify: layers, abstractions, data flow, extension points.
            Return: Architecture diagram (text), key interfaces, boundaries."
@@ -78,7 +77,7 @@ Task
 **Agent 3: Integration Points**
 ```
 Task
-  subagent_type: "harness:code-explorer"
+  subagent_type: "code-explorer"
   prompt: "Find where '{feature_description}' integrates with existing code.
            Identify: entry points, hooks, config systems, APIs to leverage.
            Return: Integration map with file:line references."

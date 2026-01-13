@@ -1,13 +1,12 @@
 ---
-name: harness:workflow-summary
-description: This skill should be used when the user asks to "summarize the feature", "complete the feature", "wrap up", or when the harness:feature orchestrator invokes the Summary phase.
+name: workflow-summary
+description: This skill should be used when the user asks to "summarize the feature", "complete the feature", "wrap up", or when the feature orchestrator invokes the Summary phase.
 context: fork
 hooks:
   Stop:
     - hooks:
         - type: command
           command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-summary.sh"
-          timeout: 10
 ---
 
 # Summary Phase - Completion and Documentation
@@ -250,7 +249,7 @@ gh pr create --title "{feature}" --body "## Summary
 - User verified
 
 ---
-Generated via /harness:feature"
+Generated via /feature"
 ```
 
 **Skip:** Continue to completion
@@ -266,7 +265,7 @@ Generated via /harness:feature"
 ## Why This Phase Matters
 
 The Summary phase creates **compound learning**:
-- Future `/harness:feature` searches find past completions
+- Future `/feature` searches find past completions
 - Architecture decisions inform similar features
 - Lessons prevent repeated mistakes
 - Completion records track what was built
