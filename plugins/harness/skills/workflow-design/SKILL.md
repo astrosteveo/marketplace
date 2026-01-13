@@ -16,43 +16,38 @@ allowed-tools:
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Design"
-        2. design.md exists with chosen approach documented
-        3. User selected an approach (not just presented options)
-        4. Rationale for selection is documented
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-design.sh"
+          timeout: 10
 ---
 
 # Design Phase - Architecture Selection
 
-This phase evaluates multiple approaches and selects the best architecture for implementation.
+Evaluate approaches, research best practices, and select architecture. User approval required.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What to build
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-
-**If invoked directly:** Check for existing artifacts. Read `requirements.md` if available. If starting fresh, ask for feature description and key constraints.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
 ## Phase Execution
+
+Execute these steps IN ORDER. Do NOT skip steps.
 
 ### Step 1: Load Context
 
 Read existing artifacts:
-- `{artifacts_path}/progress.md` - Current state
+- `{artifacts_path}/progress.md` - Exploration findings
 - `{artifacts_path}/requirements.md` - What must be built
-- Any exploration findings (patterns, integration points)
 
-Search engram for architectural patterns:
+Search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} architecture design approach"
+  query: "{feature_description} architecture design"
   n_results: 5
 ```
 
@@ -63,20 +58,18 @@ mcp__plugin_engram-mcp_engram__memory_insights
   n_results: 5
 ```
 
-Past architectural decisions are especially valuable here.
-
 ### Step 2: Update Progress
 
 Edit `progress.md`:
-- Set Phase to "Design"
+- Change "Phase:" to "Design"
 - Check off "Requirements"
 - Add session log entry
 
-### Step 3: Research Current Best Practices
+### Step 3: Research Best Practices
 
-**IMPORTANT:** Before designing, research how others are solving similar problems today.
+REQUIRED: Research current best practices before designing.
 
-Perform 2-4 web searches based on the feature type:
+Execute 2-4 web searches:
 
 ```
 WebSearch
@@ -85,149 +78,114 @@ WebSearch
 
 ```
 WebSearch
-  query: "{feature_type} modern architecture patterns"
+  query: "{feature_type} architecture patterns modern"
 ```
 
 ```
 WebSearch
-  query: "{technology_stack} {feature_description} implementation guide"
+  query: "{technology_stack} {feature_description} implementation"
 ```
-
-If relevant frameworks or libraries might help:
-```
-WebSearch
-  query: "{feature_type} libraries frameworks comparison 2026"
-```
-
-**What to look for:**
-- Current best practices and patterns
-- Modern frameworks/libraries that solve this problem
-- Common pitfalls others have encountered
-- Performance considerations
-- Security best practices
 
 **Summarize findings:**
-- List 2-3 relevant approaches from research
-- Note any libraries/frameworks worth considering
-- Flag any outdated patterns to avoid
-- Identify industry-standard solutions
+- Current best practices
+- Recommended libraries/frameworks
+- Patterns to avoid
+- Industry-standard approaches
 
-If a specific article or documentation looks valuable, use WebFetch to get details:
-```
-WebFetch
-  url: "{relevant_url}"
-  prompt: "Extract the key architectural patterns and recommendations for {feature_type}"
-```
+Add to progress.md:
 
-**Add research findings to progress.md:**
 ```markdown
 ## Design Research
 
 ### Web Research ({date})
 - **Best Practices:** {summary}
-- **Recommended Approaches:** {list}
 - **Libraries to Consider:** {list}
-- **Patterns to Avoid:** {outdated approaches}
-- **Key Sources:** {urls}
+- **Patterns to Avoid:** {list}
+- **Sources:** {urls}
 ```
 
 ### Step 4: Launch Architect Agents
 
-Launch 2-3 architect agents in parallel to explore different approaches.
+Launch 3 parallel agents. Include research context in ALL prompts:
 
-**Include research context in all prompts:**
-- Best practices discovered in Step 3
-- Recommended libraries/frameworks
-- Patterns to avoid
-
-**Agent 1: Minimal Change Approach**
+**Agent 1: Minimal Change**
 ```
-Task with subagent_type: "harness:code-architect"
-prompt: "Design a MINIMAL CHANGE approach for '{feature_description}'.
-Requirements: {key requirements}
-Existing patterns: {from exploration}
-Current best practices: {from web research}
-Libraries to consider: {from research}
-
-Focus on: Smallest possible change, maximum reuse of existing code, fastest to implement.
-Document: Files to modify, components to reuse, trade-offs."
+Task
+  subagent_type: "harness:code-architect"
+  prompt: "Design MINIMAL CHANGE approach for '{feature_description}'.
+           Requirements: {from requirements.md}
+           Patterns: {from exploration}
+           Best practices: {from web research}
+           
+           Focus: Smallest change, maximum reuse.
+           Return: Files to modify, components, trade-offs."
 ```
 
-**Agent 2: Modern Best Practices Approach**
+**Agent 2: Modern Best Practices**
 ```
-Task with subagent_type: "harness:code-architect"
-prompt: "Design a MODERN BEST PRACTICES approach for '{feature_description}'.
-Requirements: {key requirements}
-Existing patterns: {from exploration}
-Current best practices: {from web research}
-Recommended libraries: {from research}
-Patterns to avoid: {outdated approaches from research}
-
-Focus on: Industry-standard solutions, modern patterns, leveraging well-maintained libraries.
-Document: Recommended stack, why these choices align with current standards, trade-offs."
+Task
+  subagent_type: "harness:code-architect"
+  prompt: "Design MODERN approach for '{feature_description}'.
+           Requirements: {from requirements.md}
+           Best practices: {from web research}
+           Libraries: {recommended from research}
+           
+           Focus: Industry-standard, modern patterns.
+           Return: Recommended stack, why it's current, trade-offs."
 ```
 
-**Agent 3: Pragmatic Approach**
+**Agent 3: Pragmatic Balance**
 ```
-Task with subagent_type: "harness:code-architect"
-prompt: "Design a PRAGMATIC approach for '{feature_description}'.
-Requirements: {key requirements}
-Existing patterns: {from exploration}
-Current best practices: {from web research}
-Libraries to consider: {from research}
-
-Focus on: Balance of modern practices and codebase consistency, reasonable abstractions.
-Document: Recommended structure, key decisions, trade-offs."
+Task
+  subagent_type: "harness:code-architect"
+  prompt: "Design PRAGMATIC approach for '{feature_description}'.
+           Requirements: {from requirements.md}
+           Patterns: {from exploration}
+           Best practices: {from web research}
+           
+           Focus: Balance modern + codebase consistency.
+           Return: Structure, key decisions, trade-offs."
 ```
 
 ### Step 5: Synthesize Approaches
 
-After agents complete, synthesize findings:
-
+After agents complete:
 1. Read each agent's output
-2. Identify common elements across approaches
+2. Identify common elements
 3. Note key differentiators
-4. Form YOUR recommendation based on:
-   - Requirements fit
-   - Codebase consistency
-   - Implementation complexity
-   - Future maintainability
+4. Form YOUR recommendation
 
-### Step 6: Present Options to User
+### Step 6: Present to User (REQUIRED PAUSE)
 
-Present a clear comparison:
+Present comparison using AskUserQuestion:
 
 ```markdown
-## Approach Comparison
+## Architecture Options
 
 ### Option A: Minimal Change
-**Summary:** {1-2 sentences}
-**Pros:** {bullet list}
-**Cons:** {bullet list}
-**Effort:** {relative estimate}
+{summary}
+- Pros: {list}
+- Cons: {list}
+- Effort: {relative}
 
-### Option B: Clean Architecture
-**Summary:** {1-2 sentences}
-**Pros:** {bullet list}
-**Cons:** {bullet list}
-**Effort:** {relative estimate}
+### Option B: Modern Best Practices  
+{summary}
+- Pros: {list}
+- Cons: {list}
+- Effort: {relative}
 
-### Option C: Pragmatic
-**Summary:** {1-2 sentences}
-**Pros:** {bullet list}
-**Cons:** {bullet list}
-**Effort:** {relative estimate}
+### Option C: Pragmatic Balance
+{summary}
+- Pros: {list}
+- Cons: {list}
+- Effort: {relative}
 
----
-
-**My Recommendation:** Option {X}
-
-**Rationale:** {Why this is the best fit given requirements and codebase}
+**Recommendation:** Option {X} because {rationale}
 ```
 
 Ask: "Which approach would you like to use?"
 
-**PAUSE POINT** - Wait for user selection.
+**STOP AND WAIT** for user selection.
 
 ### Step 7: Create Design Document
 
@@ -237,115 +195,81 @@ After user selects, write `.artifacts/{slug}/design.md`:
 # {Feature Name} - Design
 
 ## Chosen Approach
-{Name of selected approach}
+{selected approach name}
 
 ## Rationale
-{Why this approach was selected}
-{How it fits requirements}
-{How it matches codebase patterns}
+{why selected}
+{how it fits requirements}
+{how it matches codebase}
 
 ## Approaches Considered
-
-### Approach A: {Name}
-- **Summary**: {description}
-- **Pros**: {list}
-- **Cons**: {list}
-- **Why not chosen**: {reason if not selected}
-
-### Approach B: {Name}
-...
+| Approach | Summary | Why/Why Not |
+|----------|---------|-------------|
+| Minimal | {desc} | {reason} |
+| Modern | {desc} | {reason} |
+| Pragmatic | {desc} | {reason} |
 
 ## Architecture Overview
 
 ### High-Level Design
-{Description of overall structure}
+{structure description}
 
-### Component Design
+### Components
 
 #### {Component 1}
-- **Purpose:** {what it does}
-- **Interface:** {public API/props}
-- **Dependencies:** {what it uses}
-- **Location:** {where it lives in codebase}
-
-#### {Component 2}
-...
+- **Purpose:** {what}
+- **Interface:** {API/props}
+- **Location:** {path}
 
 ### Data Flow
-{How data moves through the system}
-
 ```
-[User Action] → [Component A] → [Component B] → [Result]
+[Input] → [Process] → [Output]
 ```
 
 ### Integration Points
-{Where new code connects to existing code}
+{where new connects to existing}
 
 ## Technical Decisions
-
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| {decision} | {choice} | {why} |
+| {item} | {choice} | {why} |
 
-## Risks and Mitigations
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| {risk} | Low/Med/High | Low/Med/High | {how to address} |
-
-## Open Questions
-- {Any remaining questions for implementation}
+## Risks
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| {risk} | {level} | {plan} |
 ```
 
 ### Step 8: Persist to Engram
 
-Record the architectural decision:
-
 ```
 mcp__plugin_engram-mcp_engram__memory_decision
-  content: "For {feature}: Selected {approach} approach. Key reasons: {rationale}. Components: {main components}. Trade-off accepted: {trade-off}."
+  content: "For {feature}: Selected {approach}. Reasons: {rationale}. Trade-off: {accepted trade-off}."
   category: "architecture"
-  alternatives: ["{other approaches considered}"]
-```
-
-If notable patterns chosen:
-
-```
-mcp__plugin_engram-mcp_engram__memory_remember
-  content: "{feature} architecture: {approach}. Key pattern: {pattern}. Integration via {integration point}."
-  tags: ["architecture", "{slug}", "{pattern-type}"]
+  alternatives: ["{other approaches}"]
 ```
 
 ### Step 9: Commit Design
 
-Commit the design document:
-
 ```bash
-git add .artifacts/{feature-slug}/
-git commit -m "docs({feature-slug}): select {approach-name} architecture"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): select {approach} architecture"
 ```
 
-### Step 10: Prepare Handoff
+### Step 10: Output Completion
 
-Summarize for Implement phase:
-- Chosen approach name
-- Key components to build
-- Recommended implementation order
-- Critical integration points
+```
+DESIGN COMPLETE
+Approach: {selected}
+Key components: {list}
+Integration points: {list}
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` updated with "Phase: Design"
-2. `design.md` exists with chosen approach
-3. User actively selected an approach
-4. Rationale documented
+## Critical Rules
 
-## Engram Integration
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find similar architectures |
-| Start | `memory_insights` | Get past design decisions |
-| End | `memory_decision` | Record approach selection |
-| End | `memory_remember` | Persist key patterns |
+1. ALWAYS research web before designing
+2. ALWAYS launch 3 architect agents
+3. ALWAYS present options to user and wait for selection
+4. NEVER create design.md without user approval
+5. ALWAYS document rationale for selection

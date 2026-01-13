@@ -51,7 +51,7 @@ artifacts:
 
   git:
     auto-commit: true
-    commit-style: conventional  # conventional | simple
+    commit-style: conventional # conventional | simple
 
 # ------------------------------------------------------------------------------
 # AGENTS
@@ -63,7 +63,7 @@ agents:
 
   # Model per agent type
   models:
-    explorer: sonnet
+    explorer: opus
     architect: opus
     reviewer: opus
 

@@ -10,189 +10,177 @@ allowed-tools:
   - Bash(npm:*)
   - Bash(yarn:*)
   - Bash(pnpm:*)
+  - Bash(bun:*)
   - Bash(pytest:*)
   - Bash(cargo:*)
   - Bash(go:*)
   - Bash(make:*)
+  - Bash(git:*)
   - AskUserQuestion
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Testing"
-        2. Test checklist was presented to user
-        3. User confirmed testing passed OR issues were fixed and re-tested
-        4. Testing results documented in progress.md
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-testing.sh"
+          timeout: 10
 ---
 
 # Testing Phase - User Verification
 
-This phase guides user through testing and verifies the feature works correctly.
+Guide user through testing and verify the feature works. User confirmation REQUIRED - cannot be skipped.
 
-**CRITICAL:** This phase cannot be skipped. Features require user verification before completion.
+## Context Parsing
 
-## Context
-
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What was built
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-
-**If invoked directly:** Check for recent implementation. If testing standalone, ask what feature to test.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
 ## Phase Execution
+
+Execute these steps IN ORDER. This phase CANNOT be skipped or auto-passed.
 
 ### Step 1: Load Context
 
 Read existing artifacts:
 - `{artifacts_path}/progress.md` - Implementation and review status
-- `{artifacts_path}/requirements.md` - What needs to be verified
+- `{artifacts_path}/requirements.md` - What to verify
 - `{artifacts_path}/design.md` - Expected behavior
 
-Search engram for testing patterns:
+Search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} testing verification"
+  query: "{feature_description} testing"
   n_results: 3
 ```
 
 ### Step 2: Update Progress
 
 Edit `progress.md`:
-- Set Phase to "Testing"
+- Change "Phase:" to "Testing"
 - Check off "Code Review"
 - Add session log entry
 
-### Step 3: Run Automated Tests (if applicable)
+### Step 3: Run Automated Tests
 
-Check for and run existing test suites:
+Detect and run test suite:
 
 ```bash
-# Detect test runner and run
-npm test  # or yarn test, pytest, cargo test, go test, etc.
+# Detect framework and run
+npm test 2>&1 || yarn test 2>&1 || pytest 2>&1 || cargo test 2>&1 || go test ./... 2>&1
 ```
 
 Report results:
-- Tests passing: ✓
-- Tests failing: List failures
-- No tests: Note this
+- **Passing**: "All {N} automated tests pass"
+- **Failing**: List failures, investigate
+- **None**: "No automated tests found"
 
-If tests fail:
-1. Identify failing tests
-2. Determine if failure is from new code or existing issue
-3. Fix if from new code, commit: `fix({slug}): fix failing test`
+If tests fail from new code:
+1. Diagnose issue
+2. Fix
+3. Commit: `fix({slug}): fix failing test`
+4. Re-run tests
 
 ### Step 4: Generate Manual Test Checklist
 
-Based on requirements.md, create a testing checklist:
+Based on requirements.md, create checklist:
 
 ```markdown
 ## Manual Testing Checklist
 
-Please test each scenario and report PASS or FAIL.
+Test each scenario and report results.
 
 ---
 
 ### Test 1: {Core Functionality}
-**What to test:** {description}
 **Steps:**
-1. {Step 1}
-2. {Step 2}
-3. {Step 3}
+1. {action}
+2. {action}
+3. {action}
 
-**Expected result:** {what should happen}
-
-**Your result:** PASS / FAIL
+**Expected:** {outcome}
 
 ---
 
-### Test 2: {Secondary Functionality}
-**What to test:** {description}
+### Test 2: {Secondary Feature}
 **Steps:**
-1. {Step 1}
-2. {Step 2}
+1. {action}
+2. {action}
 
-**Expected result:** {what should happen}
-
-**Your result:** PASS / FAIL
+**Expected:** {outcome}
 
 ---
 
 ### Test 3: {Edge Case}
-**What to test:** {description}
 **Steps:**
-1. {Step 1}
+1. {trigger condition}
 
-**Expected result:** {what should happen}
-
-**Your result:** PASS / FAIL
+**Expected:** {graceful handling}
 
 ---
 
-### Test 4: {Error Handling}
-**What to test:** {description}
+### Test 4: {Error Scenario}
 **Steps:**
-1. {Trigger error condition}
+1. {cause error}
 
-**Expected result:** {graceful error handling}
-
-**Your result:** PASS / FAIL
-
----
-
-Please complete testing and report results.
+**Expected:** {error message/recovery}
 ```
 
-### Step 5: Present Checklist and Wait
+### Step 5: Present to User (REQUIRED PAUSE)
 
-**PAUSE POINT - CRITICAL**
+Present checklist using AskUserQuestion:
 
-Present the testing checklist to user.
+"Please test each scenario:
 
-Ask: "Please test each scenario and let me know the results."
+{checklist}
 
-**DO NOT PROCEED** until user reports testing results.
+Report: All passed? Or which failed?"
 
-Acceptable responses:
-- "All passed" / "Testing passed" → Proceed to documentation
-- "Test N failed: {description}" → Handle failure
-- Individual PASS/FAIL for each test → Process results
+**STOP AND WAIT** for user response.
 
-### Step 6: Handle Test Failures
+DO NOT proceed until user explicitly confirms testing.
 
-If any tests reported as FAIL:
+### Step 6: Handle Failures
 
-1. **Understand the failure**
-   - Ask for details: What happened vs. expected?
-   - Ask for error messages if any
+If user reports any failure:
 
-2. **Diagnose the issue**
+1. **Understand**
+   - Ask: "What happened vs expected?"
+   - Get error messages if any
+
+2. **Diagnose**
    - Read relevant code
    - Identify root cause
 
-3. **Fix the issue**
-   - Make minimal fix
-   - Commit: `fix({slug}): {description of fix}`
+3. **Fix**
+   - Apply minimal fix
+   - Commit: `fix({slug}): {description}`
 
-4. **Request re-test**
-   - Ask user to re-test the specific scenario
+4. **Re-test**
+   - Ask user to re-test that specific scenario
    - Wait for confirmation
 
-5. **Repeat until passing**
+5. **Repeat** until all tests pass
 
-Record fix in engram:
+Record each fix:
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "Testing {feature}: Found {issue} when {scenario}. Fix: {solution}."
+  content: "Testing {feature}: Found {issue} in {scenario}. Fix: {solution}."
   category: "bug_fix"
   root_cause: "{cause}"
 ```
 
-### Step 7: Document Testing Results
+### Step 7: Get Final Confirmation (REQUIRED)
+
+After all scenarios tested:
+
+"All test scenarios completed. Do you confirm the feature works correctly?"
+
+**STOP AND WAIT** for explicit "yes" / "confirmed" / "works".
+
+### Step 8: Document Results
 
 Add to `progress.md`:
 
@@ -203,74 +191,50 @@ Add to `progress.md`:
 {YYYY-MM-DD}
 
 ### Automated Tests
-- Status: {PASSED / FAILED / N/A}
-- Tests run: {N}
+- Status: {PASS/FAIL/N/A}
+- Total: {N}
 - Passed: {N}
-- Failed: {N}
 
 ### Manual Testing
+| Test | Description | Result |
+|------|-------------|--------|
+| 1 | {core} | PASS |
+| 2 | {secondary} | PASS |
+| 3 | {edge case} | PASS |
+| 4 | {error} | PASS |
 
-| Test | Description | Result | Notes |
-|------|-------------|--------|-------|
-| 1 | {Core functionality} | PASS | - |
-| 2 | {Secondary functionality} | PASS | - |
-| 3 | {Edge case} | PASS | - |
-| 4 | {Error handling} | PASS | - |
+### Issues Fixed During Testing
+| Issue | Fix | Commit |
+|-------|-----|--------|
+| {issue} | {solution} | {hash} |
 
-### Issues Found During Testing
-| Issue | Resolution |
-|-------|------------|
-| {issue} | Fixed in commit {hash} |
-
-### Verification
-- [ ] All automated tests passing
-- [x] Manual testing completed
-- [x] User confirmed feature works as expected
+### User Confirmation
+- Date: {date}
+- Status: CONFIRMED
 ```
-
-### Step 8: Get Final Confirmation
-
-Ask user for explicit confirmation:
-
-"Testing complete. All scenarios passed. Do you confirm the feature is working correctly?"
-
-Wait for explicit "yes" / "confirmed" / "looks good" before proceeding.
 
 ### Step 9: Commit Testing Results
 
-Commit testing documentation and any fixes:
-
 ```bash
-git add .artifacts/{feature-slug}/
-git add -u  # stage any files modified during bug fixes
-git commit -m "docs({feature-slug}): record successful testing"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): record successful testing"
 ```
 
-### Step 10: Prepare Handoff
+### Step 10: Output Completion
 
-Summarize for Summary phase:
-- Testing status: PASSED
-- Any issues found and fixed during testing
-- User confirmation received
+```
+TESTING COMPLETE
+Automated: {pass/fail/na}
+Manual: {N} scenarios passed
+Issues fixed: {N}
+User confirmed: YES
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` updated with "Phase: Testing"
-2. Test checklist was presented
-3. User confirmed testing passed (or issues fixed and re-tested)
-4. Testing results documented
+## Critical Rules
 
-## Important Notes
-
-- **Never auto-pass testing** - Always require user verification
-- **Never skip re-testing** - If something was fixed, it must be re-tested
-- **Document everything** - Testing results are important artifacts
-
-## Engram Integration
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find testing patterns |
-| During | `memory_lesson` | Record bugs found |
-| End | (auto via hooks) | Session indexed |
+1. NEVER auto-pass testing - user MUST confirm
+2. ALWAYS present manual test checklist
+3. ALWAYS wait for explicit user confirmation
+4. ALWAYS fix and re-test failures before proceeding
+5. ALWAYS document all test results

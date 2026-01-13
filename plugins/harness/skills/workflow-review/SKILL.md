@@ -14,286 +14,213 @@ allowed-tools:
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Review"
-        2. Review findings were documented in progress.md
-        3. User decided on each high-priority issue (fix/defer/accept)
-        4. Any fixes requested were applied
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-review.sh"
+          timeout: 10
 ---
 
 # Review Phase - Code Quality Verification
 
-This phase reviews implemented code for quality, bugs, and consistency.
+Review implemented code for quality, bugs, and consistency. Auto-proceed unless high-priority issues found.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What was built
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-
-**If invoked directly:** Check for recent changes via `git diff`. If no changes, ask what code to review.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
 ## Phase Execution
+
+Execute these steps IN ORDER. Do NOT skip steps.
 
 ### Step 1: Load Context
 
 Read existing artifacts:
-- `{artifacts_path}/progress.md` - Implementation summary
+- `{artifacts_path}/progress.md` - Implementation details
 - `{artifacts_path}/design.md` - Expected architecture
-- `{artifacts_path}/requirements.md` - What was supposed to be built
+- `{artifacts_path}/requirements.md` - Specifications
 
-Get list of changed files:
+Get changed files:
 ```bash
-git diff --name-only HEAD~{n}  # or appropriate range
+git diff --name-only HEAD~{commits}
 ```
 
-Search engram for review context:
+Search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} code review issues"
+  query: "{feature_description} review issues"
   n_results: 3
 ```
 
 ```
 mcp__plugin_engram-mcp_engram__memory_insights
-  query: "code review {feature_type}"
+  query: "code review"
   insight_type: "lesson"
   n_results: 5
 ```
 
-Past review lessons help focus on common issues.
-
 ### Step 2: Update Progress
 
 Edit `progress.md`:
-- Set Phase to "Review"
+- Change "Phase:" to "Review"
 - Check off "Implementation"
 - Add session log entry
 
 ### Step 3: Launch Reviewer Agents
 
-Launch 3 reviewer agents in parallel:
+Launch 3 parallel agents:
 
-**Agent 1: Code Quality Review**
+**Agent 1: Code Quality**
 ```
-Task with subagent_type: "harness:code-reviewer"
-prompt: "Review these files for CODE QUALITY:
-{list of changed files}
-
-Focus on:
-- Simplicity and readability
-- DRY violations
-- Code elegance
-- Naming clarity
-- Comment quality (only where needed)
-
-Requirements context: {key requirements}
-Design context: {chosen approach}
-
-Report issues with severity (High/Medium/Low) and specific line references."
+Task
+  subagent_type: "harness:code-reviewer"
+  prompt: "Review for CODE QUALITY:
+           Files: {changed files}
+           
+           Check: Readability, DRY, naming, complexity.
+           
+           Report: Severity (High/Medium/Low), file:line, fix suggestion.
+           Confidence threshold: 80+"
 ```
 
-**Agent 2: Bug and Logic Review**
+**Agent 2: Bugs and Logic**
 ```
-Task with subagent_type: "harness:code-reviewer"
-prompt: "Review these files for BUGS AND LOGIC ERRORS:
-{list of changed files}
-
-Focus on:
-- Logic errors
-- Edge cases not handled
-- Null/undefined issues
-- Race conditions
-- Error handling gaps
-- Security vulnerabilities
-
-Requirements context: {key requirements}
-
-Report issues with severity and specific line references."
+Task
+  subagent_type: "harness:code-reviewer"
+  prompt: "Review for BUGS AND LOGIC:
+           Files: {changed files}
+           Requirements: {from requirements.md}
+           
+           Check: Logic errors, edge cases, null handling, security.
+           
+           Report: Severity, file:line, fix suggestion.
+           Confidence threshold: 80+"
 ```
 
-**Agent 3: Consistency Review**
+**Agent 3: Consistency**
 ```
-Task with subagent_type: "harness:code-reviewer"
-prompt: "Review these files for CODEBASE CONSISTENCY:
-{list of changed files}
-
-Focus on:
-- Matches existing patterns
-- Follows project conventions
-- Consistent with similar features
-- Proper use of existing utilities
-- Integration correctness
-
-Codebase patterns: {from exploration phase}
-
-Report issues with severity and specific line references."
+Task
+  subagent_type: "harness:code-reviewer"
+  prompt: "Review for CONSISTENCY:
+           Files: {changed files}
+           Patterns: {from exploration}
+           
+           Check: Matches codebase patterns, conventions, integration.
+           
+           Report: Severity, file:line, fix suggestion.
+           Confidence threshold: 80+"
 ```
 
 ### Step 4: Consolidate Findings
 
-After agents complete, consolidate all findings:
+After agents complete, categorize all issues:
 
-**High Priority** - Should fix before proceeding
+**High Priority** (must address):
 - Security vulnerabilities
-- Logic bugs
+- Logic bugs causing incorrect behavior
 - Breaking changes
 
-**Medium Priority** - Consider fixing
+**Medium Priority** (should address):
 - Code quality issues
 - Minor inconsistencies
-- Missed edge cases
+- Missing edge case handling
 
-**Low Priority** - Nice to have
+**Low Priority** (nice to have):
 - Style preferences
 - Minor naming suggestions
-- Optional improvements
 
-De-duplicate overlapping findings across reviewers.
+De-duplicate overlapping findings.
 
-### Step 5: Present Findings
+### Step 5: Handle Issues (CONDITIONAL PAUSE)
 
-Present consolidated findings to user:
-
-```markdown
-## Code Review Results
-
-### High Priority Issues ({N})
-
-#### Issue 1: {Title}
-- **File:** `path/to/file.ts:{line}`
-- **Severity:** High
-- **Category:** {Bug/Security/Breaking}
-- **Description:** {what's wrong}
-- **Recommendation:** {how to fix}
-
-...
-
-### Medium Priority Issues ({N})
-...
-
-### Low Priority Issues ({N})
-...
-
-### Summary
-- Total issues: {N}
-- High: {N} | Medium: {N} | Low: {N}
-```
-
-**CONDITIONAL PAUSE:**
-
-**If NO high priority issues:**
-- Auto-fix any medium issues that are straightforward
-- Briefly note: "Review complete. {N} minor issues addressed. Proceeding to testing."
+**IF NO HIGH PRIORITY ISSUES:**
+- Auto-fix medium priority issues that are straightforward
+- Note: "Review complete. {N} minor issues addressed."
 - Continue automatically
 
-**If high priority issues exist:**
-- ⏸ PAUSE and ask: "Found {N} high priority issues. Fix now?"
-- Fix issues based on user response
-- Then continue automatically
+**IF HIGH PRIORITY ISSUES EXIST:**
+- Present findings to user
+- Ask: "Found {N} high priority issues. Fix now?"
+- **PAUSE AND WAIT** for response
+- Fix based on user decision
 
 ### Step 6: Apply Fixes
 
-Based on user decision:
-
-**If fixing issues:**
-1. Address each issue in priority order
-2. Commit fixes:
+For each issue to fix:
+1. Read the file
+2. Apply the fix
+3. Commit:
+   ```bash
+   git commit -m "fix({slug}): {description}"
    ```
-   fix({slug}): {description of fix}
-   ```
-3. Mark issue as resolved
 
-**If deferring issues:**
-1. Document in progress.md as "Deferred"
-2. Note reason for deferral
+For deferred issues:
+- Document in progress.md as "Deferred: {reason}"
 
-**If accepting risks:**
-1. Document in progress.md as "Accepted"
-2. Note user accepted the risk
+For accepted risks:
+- Document in progress.md as "Accepted: {reason}"
 
-### Step 7: Document Review Results
+### Step 7: Document Review
 
 Add to `progress.md`:
 
 ```markdown
 ## Code Review
 
-### Review Date
+### Date
 {YYYY-MM-DD}
 
-### Issues Found
-
+### Issues
 | Severity | Issue | File | Resolution |
 |----------|-------|------|------------|
 | High | {issue} | `file:line` | Fixed/Deferred/Accepted |
-| Medium | {issue} | `file:line` | Fixed/Deferred/Accepted |
-| Low | {issue} | `file:line` | Fixed/Deferred/Accepted |
+| Medium | {issue} | `file:line` | Fixed/Deferred |
+| Low | {issue} | `file:line` | Fixed/Deferred |
 
 ### Summary
-- Total found: {N}
+- Found: {N}
 - Fixed: {N}
 - Deferred: {N}
 - Accepted: {N}
 
-### Commits
+### Fix Commits
 - `{hash}` - fix({slug}): {message}
 ```
 
-### Step 8: Persist Lessons to Engram
-
-If notable issues found:
+### Step 8: Persist to Engram
 
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "Review of {feature_type}: Found {issue_type} in {context}. Fix: {solution}."
+  content: "Review of {feature}: Found {issue_type} in {context}. Fix: {solution}."
   category: "bug_fix"
   root_cause: "{cause}"
 ```
 
-If review revealed pattern issues:
-
-```
-mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "When implementing {pattern}: Watch for {issue}. Better approach: {recommendation}."
-  category: "anti_pattern"
-```
-
 ### Step 9: Commit Review Results
 
-Commit the review documentation (and any remaining fixes):
-
 ```bash
-git add .artifacts/{feature-slug}/
-git add -u  # stage any modified files from fixes
-git commit -m "docs({feature-slug}): complete code review"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): complete code review"
 ```
 
-### Step 10: Prepare Handoff
+### Step 10: Output Completion
 
-Summarize for Testing phase:
-- Review status (all clear / issues remaining)
-- Key areas that need testing attention
-- Any deferred issues to be aware of
+```
+REVIEW COMPLETE
+Issues found: {N}
+Fixed: {N}
+Deferred: {N}
+High priority remaining: {N}
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` updated with "Phase: Review"
-2. Review findings documented
-3. User decided on high-priority issues
-4. Fixes applied if requested
+## Critical Rules
 
-## Engram Integration
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find similar review issues |
-| Start | `memory_insights` | Get past review lessons |
-| End | `memory_lesson` | Record bugs found |
-| End | `memory_lesson` | Record anti-patterns |
+1. ALWAYS launch all 3 reviewer agents
+2. ALWAYS document all findings in progress.md
+3. PAUSE only if high priority issues exist
+4. Auto-proceed if no high priority issues
+5. ALWAYS record lessons for significant bugs

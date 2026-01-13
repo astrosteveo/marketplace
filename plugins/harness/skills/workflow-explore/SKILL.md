@@ -8,167 +8,164 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Bash(ls:*)
+  - Bash(find:*)
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before this skill completes, validate that:
-        1. progress.md exists and has "Phase: Explore"
-        2. progress.md contains "## Codebase Exploration" section
-        3. At least 3 relevant files were identified
-
-        If validation fails, output what's missing. If validation passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-explore.sh"
+          timeout: 10
 ---
 
 # Explore Phase - Codebase Understanding
 
-This phase explores the codebase to understand patterns, architecture, and integration points relevant to the feature being implemented.
+Map the codebase to understand patterns, architecture, and integration points relevant to the feature.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives context via `$ARGUMENTS`:
-- `feature_slug`: The feature identifier (e.g., "dark-mode")
-- `feature_description`: What the user wants to build
-- `artifacts_path`: Path to `.artifacts/{feature-slug}/`
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
-**If invoked directly by user:** Parse `$ARGUMENTS` for a feature description or exploration goal. If none provided, ask what aspect of the codebase to explore. For standalone exploration (not part of workflow), skip artifact creation and just present findings directly.
+If not provided, check for existing `.artifacts/*/progress.md` and ask which feature to explore.
 
 ## Phase Execution
 
+Execute these steps IN ORDER. Do NOT skip steps.
+
 ### Step 1: Search Engram for Prior Context
 
-Before exploring the codebase, search engram for relevant past work:
+IMMEDIATELY search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} architecture patterns implementation"
+  query: "{feature_description} architecture patterns"
   n_results: 5
 ```
-
-Also search for insights (decisions/lessons) about similar features:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_insights
   query: "{feature_description}"
-  insight_type: "all"
+  insight_type: "decision"
   n_results: 3
 ```
 
-If relevant findings exist, incorporate them into exploration strategy.
+Incorporate findings into exploration strategy.
 
 ### Step 2: Update Progress
 
-Read current `{artifacts_path}/progress.md` and update:
-- Set Phase to "Explore"
+Read `{artifacts_path}/progress.md` and update:
+- Change "Phase:" to "Explore"
 - Check off "Discovery" in checklist
 - Add session log entry
 
 ### Step 3: Launch Explorer Agents
 
-Launch 2-3 explorer agents in parallel using the Task tool:
+Launch 3 parallel agents using Task tool. ALL THREE must be launched in a SINGLE message:
 
 **Agent 1: Pattern Discovery**
 ```
-Task with subagent_type: "harness:code-explorer"
-prompt: "Find features similar to '{feature_description}' in this codebase. Trace their implementation patterns, file organization, and coding conventions."
+Task
+  subagent_type: "harness:code-explorer"
+  prompt: "Find features similar to '{feature_description}' in this codebase.
+           Identify: implementation patterns, file organization, coding conventions.
+           Return: File paths with relevance notes, pattern descriptions."
 ```
 
 **Agent 2: Architecture Mapping**
 ```
-Task with subagent_type: "harness:code-explorer"
-prompt: "Map the architecture relevant to '{feature_description}'. Identify layers, abstractions, data flow patterns, and extension points."
+Task
+  subagent_type: "harness:code-explorer"
+  prompt: "Map architecture relevant to '{feature_description}'.
+           Identify: layers, abstractions, data flow, extension points.
+           Return: Architecture diagram (text), key interfaces, boundaries."
 ```
 
 **Agent 3: Integration Points**
 ```
-Task with subagent_type: "harness:code-explorer"
-prompt: "Identify where '{feature_description}' would integrate. Find entry points, hooks, configuration systems, and existing APIs that could be leveraged."
+Task
+  subagent_type: "harness:code-explorer"
+  prompt: "Find where '{feature_description}' integrates with existing code.
+           Identify: entry points, hooks, config systems, APIs to leverage.
+           Return: Integration map with file:line references."
 ```
+
+Wait for ALL agents to complete before proceeding.
 
 ### Step 4: Synthesize Findings
 
-After agents complete, synthesize their findings into structured documentation.
-
-Read key files identified by agents to verify and deepen understanding.
+After agents complete:
+1. Read key files identified by agents
+2. Verify and deepen understanding
+3. Identify the most important patterns
 
 ### Step 5: Document in Progress
 
-Add "## Codebase Exploration" section to `{artifacts_path}/progress.md`:
+Add to `{artifacts_path}/progress.md`:
 
 ```markdown
 ## Codebase Exploration
 
-### Key Patterns Discovered
-- **{Pattern Name}**: {How it works and why it matters}
+### Key Patterns
+| Pattern | Location | Relevance |
+|---------|----------|-----------|
+| {name} | {path} | {why it matters} |
 
 ### Relevant Files
-| File | Purpose | Relevance to Feature |
-|------|---------|---------------------|
-| `path/to/file.ts` | What it does | Why it matters |
+| File | Purpose | Feature Relevance |
+|------|---------|-------------------|
+| `path/file.ts` | {what it does} | {why it matters} |
 
 ### Architecture Notes
-{High-level structure relevant to this feature}
+{High-level structure description}
 
 ### Integration Points
-{Where the new feature will connect to existing code}
+{Where new code connects to existing code}
 
-### Insights from Past Work
-{Any relevant decisions/lessons from engram}
+### Prior Context (Engram)
+{Any relevant decisions/lessons from memory}
 ```
 
 ### Step 6: Persist to Engram
 
-Record key architectural insights for future sessions:
+Record significant findings:
 
-**If significant patterns discovered:**
 ```
 mcp__plugin_engram-mcp_engram__memory_decision
-  content: "For {feature_description}: Found {pattern} pattern in {location}. This approach {rationale}."
+  content: "For {feature_description}: Found {pattern} pattern at {location}. Approach: {rationale}."
   category: "architecture"
-  alternatives: ["other approaches considered"]
 ```
 
-**If gotchas or important notes found:**
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "When implementing features like {feature_description}: {lesson}"
+  content: "Codebase uses {pattern} for {purpose}. Integration point: {location}."
   category: "pattern"
 ```
 
 ### Step 7: Commit Exploration
 
-Commit the exploration findings:
-
 ```bash
-git add .artifacts/{feature-slug}/
-git commit -m "docs({feature-slug}): document codebase exploration"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): document codebase exploration"
 ```
 
-### Step 8: Prepare Handoff
+### Step 8: Output Completion
 
-Summarize exploration for the next phase (Requirements):
-- Top 3-5 most important findings
-- Recommended approach based on patterns
-- Questions that need user input
+```
+EXPLORE COMPLETE
+Key patterns: {list}
+Integration points: {list}
+Files identified: {count}
 
-Output this summary - it will be passed to the Requirements phase.
+```
 
-## Completion Criteria
+## Critical Rules
 
-The Stop hook validates:
-1. `progress.md` updated with Phase: Explore
-2. "## Codebase Exploration" section exists
-3. At least 3 relevant files documented
-
-Phase is complete when hook outputs "PHASE_COMPLETE".
-
-## Engram Integration Summary
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find relevant past context |
-| Start | `memory_insights` | Get related decisions/lessons |
-| End | `memory_decision` | Record architectural choices |
-| End | `memory_lesson` | Record patterns/gotchas |
-
-The Stop hook will trigger `memory_sync` via the engram plugin's hooks.
+1. ALWAYS launch all 3 explorer agents in parallel
+2. ALWAYS document at least 3 relevant files
+3. ALWAYS update progress.md with exploration section
+4. NEVER complete without synthesizing agent findings
+5. Proceed automatically to Requirements phase

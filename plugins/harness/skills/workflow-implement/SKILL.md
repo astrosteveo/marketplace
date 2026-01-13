@@ -14,79 +14,57 @@ allowed-tools:
   - Bash(npm:*)
   - Bash(yarn:*)
   - Bash(pnpm:*)
+  - Bash(bun:*)
   - Bash(cargo:*)
   - Bash(go:*)
   - Bash(python:*)
   - Bash(pytest:*)
   - Bash(make:*)
+  - Bash(ls:*)
   - AskUserQuestion
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   PreToolUse:
-    - matcher: Write|Edit
-      prompt: |
-        Check if this file operation should be allowed:
-
-        Tool: $TOOL_NAME
-        File: $TOOL_INPUT.file_path
-
-        RULES:
-        1. ALLOW if file path contains ".artifacts/" (artifact files are always OK)
-        2. ALLOW if file path ends with "plan.md" (creating the plan is required)
-        3. BLOCK if plan.md does not exist yet in .artifacts/{feature-slug}/
-           - Output: "BLOCK: Must create plan.md before writing code. Run: ls .artifacts/*/plan.md"
-        4. ALLOW if plan.md exists (implementation can proceed)
-
-        To check if plan.md exists, consider the conversation context.
-        If uncertain whether plan.md exists, ALLOW and let the Stop hook catch it.
-
-        Output either "ALLOW" or "BLOCK: {reason}"
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-implement-pretool.sh"
+          timeout: 5
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Implement"
-        2. plan.md exists with implementation steps
-        3. Code changes were made (check git status)
-        4. Implementation follows the approved design
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-implement.sh"
+          timeout: 10
 ---
 
 # Implement Phase - Building the Feature
 
-This phase implements the feature according to the approved design.
+Implement the feature according to the approved design. User approval of plan required before coding.
 
-**Phase Requirements (in order):**
-1. Read design.md and requirements.md
-2. **Create plan.md** (MUST exist before coding)
-3. **Present plan and get user approval** (MUST wait for confirmation)
-4. Implement according to plan
-5. Update progress.md with results
+## Context Parsing
 
-## Context
-
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What to build
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-- `tdd_mode`: Whether to use test-driven development
-
-**If invoked directly:** Check for existing artifacts. Read `design.md` if available. If starting fresh, ask for what to implement and how.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
+- `--tdd`: Enable test-driven development mode
 
 ## Phase Execution
+
+Execute these steps IN ORDER. The PreToolUse hook logs all Write/Edit operations.
 
 ### Step 1: Load Context
 
 Read existing artifacts:
 - `{artifacts_path}/progress.md` - Current state
-- `{artifacts_path}/requirements.md` - What must be built
-- `{artifacts_path}/design.md` - How to build it
+- `{artifacts_path}/requirements.md` - What to build
+- `{artifacts_path}/design.md` - How to build
 
-Search engram for implementation patterns:
+Search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} implementation code"
+  query: "{feature_description} implementation"
   n_results: 5
 ```
 
@@ -97,131 +75,120 @@ mcp__plugin_engram-mcp_engram__memory_insights
   n_results: 5
 ```
 
-Past lessons (bugs, gotchas) are especially valuable here.
+Past lessons (bugs, gotchas) are critical here.
 
 ### Step 2: Update Progress
 
 Edit `progress.md`:
-- Set Phase to "Implement"
+- Change "Phase:" to "Implement"
 - Check off "Architecture Design"
 - Add session log entry
 
-### Step 3: Create Implementation Plan (REQUIRED)
+### Step 3: Create Implementation Plan (REQUIRED FIRST)
 
-**CRITICAL:** Before writing ANY code, create `.artifacts/{slug}/plan.md` using the Write tool.
-
-This file MUST exist before proceeding. Based on design.md, write this file:
+BEFORE writing any source code, create `.artifacts/{slug}/plan.md`:
 
 ```markdown
 # {Feature Name} - Implementation Plan
 
 ## Approach
-{Name of chosen approach from design phase}
+{from design.md}
 
 ## Files to Modify
-
 | File | Changes | Order |
 |------|---------|-------|
-| `path/to/file.ts` | {what changes} | 1 |
-| `path/to/other.ts` | {what changes} | 2 |
+| `path/file` | {changes} | 1 |
 
 ## Files to Create
-
 | File | Purpose | Order |
 |------|---------|-------|
-| `path/to/new.ts` | {purpose} | 3 |
+| `path/file` | {purpose} | 2 |
 
 ## Implementation Steps
 
-### Step 1: {Component/File}
-- [ ] {Specific task}
-- [ ] {Specific task}
+### Step 1: {Component}
+- [ ] {task}
+- [ ] {task}
 
-### Step 2: {Component/File}
-- [ ] {Specific task}
-- [ ] {Specific task}
+### Step 2: {Component}
+- [ ] {task}
+- [ ] {task}
 
 ## Testing Strategy
-{How to verify each component works}
+{how to verify}
 
 ## Commit Strategy
-{Logical commit points}
+{logical commit points}
 ```
 
-### Step 4: Present Plan for Approval (REQUIRED)
+### Step 4: Get Plan Approval (REQUIRED PAUSE)
 
-After creating plan.md, present it to the user.
+Present plan to user using AskUserQuestion:
 
-**PAUSE POINT - DO NOT SKIP**
+"Here is the implementation plan:
 
-1. Show the plan contents to the user
-2. Ask: "Ready to proceed with implementation?"
-3. **STOP and wait for explicit approval**
+{plan summary}
 
-Do NOT write any code until the user confirms.
+Ready to proceed with implementation?"
 
-### Step 5: Implement (Standard Mode)
+**STOP AND WAIT** for explicit approval.
 
-If NOT in TDD mode, implement following the plan:
+Acceptable responses: "yes", "proceed", "go ahead", "approved", "looks good"
+
+### Step 5A: Implement (Standard Mode)
+
+If NOT in TDD mode:
 
 1. **Work through steps in order**
-   - Read existing files before modifying
+   - Read files before modifying
    - Make focused, minimal changes
    - Follow codebase conventions
 
 2. **Commit frequently**
-   ```
-   feat({slug}): add {component}
-   feat({slug}): implement {behavior}
+   ```bash
+   git add -A
+   git commit -m "feat({slug}): {description}"
    ```
 
-3. **Update plan.md**
+3. **Update plan.md progress**
    - Check off completed steps
-   - Note any deviations from plan
+   - Note deviations
 
-4. **Handle blockers**
-   - If unexpected issue: document it, ask user if needed
-   - If design needs adjustment: note it, continue or pause
+### Step 5B: Implement (TDD Mode)
 
-### Step 5-TDD: Implement (TDD Mode)
+If `--tdd` flag set:
 
-If TDD mode enabled:
+For each feature requirement:
 
-1. **Create test plan first**
-   Add to `plan.md`:
-   ```markdown
-   ## Test Cases (TDD Order)
-   1. {Behavior}: {test description}
-   2. {Behavior}: {test description}
-   ```
-
-2. **For each test case, follow Red-Green-Refactor:**
-
-   **RED** - Write failing test
+1. **RED** - Write failing test
    ```bash
-   # Run test, verify it fails
+   # Run test, confirm failure
    ```
-   Commit: `test({slug}): add failing test for {behavior}`
-
-   **GREEN** - Write minimum code to pass
    ```bash
-   # Run test, verify it passes
+   git commit -m "test({slug}): add failing test for {behavior}"
    ```
-   Commit: `feat({slug}): implement {behavior}`
 
-   **REFACTOR** - Clean up if needed
-   Commit: `refactor({slug}): {description}`
+2. **GREEN** - Minimum code to pass
+   ```bash
+   # Run test, confirm pass
+   ```
+   ```bash
+   git commit -m "feat({slug}): implement {behavior}"
+   ```
 
-3. **Repeat for all test cases**
+3. **REFACTOR** - Clean up
+   ```bash
+   git commit -m "refactor({slug}): {description}"
+   ```
 
 ### Step 6: Record Lessons
 
-If bugs encountered or gotchas discovered during implementation:
+If bugs or gotchas discovered:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "When implementing {feature_type}: {lesson}. Root cause: {cause}."
-  category: "bug_fix" or "gotcha"
+  content: "When implementing {type}: {lesson}. Cause: {cause}."
+  category: "bug_fix"
   root_cause: "{cause}"
 ```
 
@@ -229,11 +196,11 @@ If useful patterns emerged:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "Pattern for {feature_type}: {pattern}. Works well because {reason}."
+  content: "Pattern for {type}: {pattern}. Works because {reason}."
   category: "pattern"
 ```
 
-### Step 7: Update Progress with Implementation Summary
+### Step 7: Update Progress
 
 Add to `progress.md`:
 
@@ -252,36 +219,30 @@ Add to `progress.md`:
 
 ### Commits
 - `{hash}` - {message}
-- `{hash}` - {message}
 
-### Deviations from Plan
-- {Any changes from original plan and why}
+### Deviations
+{any changes from plan}
 
 ### Issues Encountered
-- {Issue}: {how resolved}
+| Issue | Resolution |
+|-------|------------|
+| {issue} | {how fixed} |
 ```
 
-### Step 8: Prepare Handoff
+### Step 8: Output Completion
 
-Summarize for Review phase:
-- List of all files changed/created
-- Key implementation decisions made
-- Any areas of concern for review
-- Test coverage status
+```
+IMPLEMENT COMPLETE
+Files changed: {count}
+Files created: {count}
+Commits: {count}
+TDD: {yes/no}
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` updated with "Phase: Implement"
-2. `plan.md` exists with implementation steps
-3. Code changes made (git status shows changes or commits)
-4. Implementation follows approved design
+## Critical Rules
 
-## Engram Integration
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find implementation patterns |
-| Start | `memory_insights` | Get past lessons/bugs |
-| During | `memory_lesson` | Record bugs discovered |
-| End | `memory_lesson` | Record patterns that worked |
+1. ALWAYS create plan.md BEFORE any source code
+2. ALWAYS get user approval of plan
+3. ALWAYS commit frequently with conventional messages
+4. ALWAYS record lessons for bugs/gotchas discovered

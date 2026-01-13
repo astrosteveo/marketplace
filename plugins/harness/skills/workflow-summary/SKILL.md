@@ -8,53 +8,51 @@ allowed-tools:
   - Write
   - Edit
   - Bash(git:*)
+  - Bash(gh:*)
+  - AskUserQuestion
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Summary" with all items checked
-        2. summary.md exists with all sections completed
-        3. Memory was persisted to engram (memory_remember called)
-        4. Session was synced (memory_sync called)
-
-        If validation fails, output what's missing. If passes, output "WORKFLOW_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-summary.sh"
+          timeout: 10
 ---
 
 # Summary Phase - Completion and Documentation
 
-This phase documents the completed feature and persists learnings for future sessions.
+Document the completed feature and persist learnings. This phase has the MOST IMPORTANT engram integration.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What was built
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-
-**If invoked directly:** Check for existing artifacts with completed testing. If found, proceed. If not, note that summary is typically done after testing.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
 ## Phase Execution
 
+Execute these steps IN ORDER. Do NOT skip steps.
+
 ### Step 1: Load All Artifacts
 
-Read all phase artifacts:
+Read ALL phase artifacts:
 - `{artifacts_path}/progress.md` - Full journey
-- `{artifacts_path}/requirements.md` - What was specified
-- `{artifacts_path}/design.md` - Architecture chosen
+- `{artifacts_path}/requirements.md` - Specifications
+- `{artifacts_path}/design.md` - Architecture
 - `{artifacts_path}/plan.md` - Implementation approach
 
-Also get git history for the feature:
+Get git history:
 ```bash
-git log --oneline --since="{start_date}" -- .
+git log --oneline -20
 ```
 
-### Step 2: Update Progress to Final State
+### Step 2: Update Progress to Final
 
 Edit `progress.md`:
-- Set Phase to "Summary"
+- Change "Phase:" to "Summary"
 - Check off "Testing"
-- Mark ALL checklist items as complete
+- Mark ALL checklist items [x]
 - Add final session log entry
 
 ```markdown
@@ -73,6 +71,7 @@ Edit `progress.md`:
 - Feature completed
 - All phases finished
 - Summary documented
+- Memory persisted
 ```
 
 ### Step 3: Create Summary Document
@@ -86,13 +85,13 @@ Write `.artifacts/{slug}/summary.md`:
 {YYYY-MM-DD}
 
 ## Overview
-{What was built in 2-3 sentences}
+{2-3 sentence summary}
 
 ## Problem Solved
-{What problem this feature addresses}
+{what problem this addresses}
 
 ## Solution
-{High-level description of the approach taken}
+{high-level approach}
 
 ## Key Decisions
 
@@ -100,129 +99,109 @@ Write `.artifacts/{slug}/summary.md`:
 |----------|--------|-----------|
 | Architecture | {approach} | {why} |
 | {Decision 2} | {choice} | {why} |
-| {Decision 3} | {choice} | {why} |
 
-## Files Changed
+## Files
 
-### New Files
+### Created
 | File | Purpose |
 |------|---------|
-| `path/to/new.ts` | {what it does} |
+| `path` | {what} |
 
-### Modified Files
+### Modified
 | File | Changes |
 |------|---------|
-| `path/to/existing.ts` | {what changed} |
+| `path` | {what} |
 
 ## Commits
 | Hash | Message |
 |------|---------|
-| `abc123` | feat({slug}): {message} |
-| `def456` | fix({slug}): {message} |
+| `abc` | feat: {msg} |
+| `def` | fix: {msg} |
 
 ## Testing
-- **Automated:** {N} tests, all passing
+- **Automated:** {N} tests passing
 - **Manual:** {N} scenarios verified
 - **User confirmed:** {date}
 
 ## Lessons Learned
 
-### What Went Well
-- {Positive outcome}
-- {Effective approach}
+### What Worked
+- {positive}
 
-### What Could Improve
-- {Challenge faced}
-- {Suggestion for next time}
+### Challenges
+- {challenge} → {resolution}
 
 ### Key Insights
-- {Important learning for future features}
+- {insight for future}
 
 ## Known Limitations
-- {Any limitations of current implementation}
-- {Edge cases not fully handled}
+- {limitation}
 
 ## Future Improvements
-- {Potential enhancement}
-- {Deferred feature}
-
-## Related Work
-- {Link to similar features}
-- {Documentation references}
+- {potential enhancement}
 ```
 
-### Step 4: Update Roadmap (if exists)
+### Step 4: Persist to Engram (CRITICAL)
 
-Check for `.artifacts/roadmap.md`:
+This is the MOST IMPORTANT engram integration. Persist EVERYTHING valuable.
 
-If exists:
-1. Move this feature to "Completed" section
-2. Add any deferred items to "Planned" section
-3. Update any related items
-
-### Step 5: Persist to Engram - Comprehensive
-
-This is the most important engram integration point. Persist everything valuable.
-
-**Feature completion summary:**
+**Feature completion (REQUIRED):**
 ```
 mcp__plugin_engram-mcp_engram__memory_remember
   content: "COMPLETED: {feature_description}
-
-Approach: {architecture approach}
-Key files: {main files created/modified}
-Pattern used: {main pattern}
-
-Key decision: {most important decision and why}
-Lesson learned: {most valuable insight}
-
-Duration: {phases completed over N sessions}"
-  tags: ["feature-complete", "{slug}", "{pattern-type}", "{tech-stack}"]
+  
+  Approach: {architecture}
+  Key files: {main files}
+  Pattern: {main pattern used}
+  
+  Key decision: {most important decision}
+  Key lesson: {most valuable insight}
+  
+  Phases: Discovery → Explore → Requirements → Design → Implement → Review → Testing → Summary"
+  tags: ["feature-complete", "{slug}", "{pattern-type}"]
 ```
 
-**Key architectural decision:**
+**Architecture decision (REQUIRED):**
 ```
 mcp__plugin_engram-mcp_engram__memory_decision
-  content: "For {feature_type} features: {approach} works well because {reasons}. Key integration: {how it connects}. Watch out for: {gotcha}."
+  content: "For {feature_type}: {approach} works because {reasons}. Integration: {how it connects}. Watch for: {gotcha}."
   category: "architecture"
-  alternatives: ["{other approaches considered}"]
+  alternatives: ["{other approaches}"]
 ```
 
-**Most valuable lesson:**
+**Most valuable lesson (REQUIRED):**
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "{Most important lesson from this feature}. Context: {when this applies}. Remember: {actionable advice}."
+  content: "{key lesson}. Context: {when applies}. Remember: {actionable advice}."
   category: "pattern"
 ```
 
-**If notable bugs were fixed:**
+**Bug patterns (if any):**
 ```
 mcp__plugin_engram-mcp_engram__memory_lesson
-  content: "Bug pattern in {context}: {issue}. Root cause: {cause}. Fix: {solution}. Prevention: {how to avoid}."
+  content: "Bug in {context}: {issue}. Cause: {cause}. Fix: {solution}. Prevention: {how to avoid}."
   category: "bug_fix"
   root_cause: "{cause}"
 ```
 
-### Step 6: Sync Session
+### Step 5: Sync Session (REQUIRED)
 
-Ensure everything is indexed:
+ALWAYS sync to ensure everything indexed:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_sync
 ```
 
-### Step 7: Commit Summary
-
-Commit the summary document:
+### Step 6: Commit Summary
 
 ```bash
-git add .artifacts/{feature-slug}/
-git commit -m "docs({feature-slug}): complete feature summary"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): complete feature summary"
 ```
 
-### Step 8: Present Completion Summary
+### Step 7: Present Completion
 
-Present final summary to user:
+Present to user:
 
 ```markdown
 ## Feature Complete!
@@ -231,99 +210,83 @@ Present final summary to user:
 
 **Status:** All 8 phases completed
 
-**Artifacts Created:**
-- `progress.md` - Full development journey
-- `requirements.md` - Feature specification
-- `design.md` - Architecture decision
-- `plan.md` - Implementation approach
-- `summary.md` - Completion documentation
+**Artifacts:**
+- `progress.md` - Development journey
+- `requirements.md` - Specifications
+- `design.md` - Architecture
+- `plan.md` - Implementation
+- `summary.md` - Completion record
 
-**Key Accomplishments:**
-- {Main thing built}
-- {Secondary accomplishment}
-- {Third accomplishment}
-
-**Commits:** {N} commits
+**Commits:** {N} total
 
 **Persisted to Memory:**
-- Feature summary with tags
-- Architectural decision
-- Key lessons learned
-
----
-
-The feature has been fully documented and learnings persisted for future sessions.
+- Feature summary
+- Architecture decision
+- Key lessons
 ```
 
-### Step 9: Offer to Push Changes
+### Step 8: Offer Push/PR (PAUSE)
 
-Check if there are unpushed commits:
-
+Check for unpushed commits:
 ```bash
-git log origin/{branch}..HEAD --oneline
+git log origin/$(git branch --show-current)..HEAD --oneline 2>/dev/null || echo "none"
 ```
 
-If there are unpushed commits, ask the user:
+If unpushed commits exist, ask:
 
-"Would you like to push these changes to the remote repository?"
+"Would you like to:
+1. Push changes to remote
+2. Create a pull request
+3. Skip for now"
 
-**If user says yes:**
+**Handle response:**
+
+**Push:**
 ```bash
-git push origin {current-branch}
+git push origin $(git branch --show-current)
 ```
 
-**If user wants a PR:**
+**PR:**
 ```bash
-gh pr create --title "{feature-name}" --body "## Summary
-{Brief description of what was built}
+gh pr create --title "{feature}" --body "## Summary
+{description}
 
 ## Changes
-{List of main changes}
+{file list}
 
 ## Testing
 - Manual testing completed
-- User verified feature works
+- User verified
 
 ---
-Generated via /harness:feature workflow"
+Generated via /harness:feature"
 ```
 
-Present the push result or PR URL to the user.
+**Skip:** Continue to completion
 
-### Step 10: Output Completion Signal
+### Step 9: Output Completion
 
-Output "WORKFLOW_COMPLETE" for orchestrator.
+```
+SUMMARY COMPLETE
+Artifacts: 5 files
+Commits: {N}
+Memory: persisted
+Push/PR: {status}
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` shows "Phase: Summary" with all checked
-2. `summary.md` exists and is complete
-3. `memory_remember` was called (feature summary persisted)
-4. `memory_sync` was called (session indexed)
+## Critical Rules
 
-Output: "WORKFLOW_COMPLETE" (special signal for orchestrator)
+1. ALWAYS persist to engram (remember, decision, lesson, sync)
+2. ALWAYS mark ALL checklist items complete
+3. ALWAYS create summary.md
+4. ALWAYS call memory_sync
+5. Output "" (special signal for orchestrator)
 
-## Engram Integration - Summary Phase is Critical
+## Why This Phase Matters
 
-This phase has the most important engram integration:
-
-| Tool | Content | Purpose |
-|------|---------|---------|
-| `memory_remember` | Full feature summary | Searchable completion record |
-| `memory_decision` | Architecture choice | Inform future similar features |
-| `memory_lesson` | Key insights | Compound learning |
-| `memory_sync` | Current session | Ensure everything indexed |
-
-**Why this matters:**
-- Future features can search "how did we implement X"
-- Architecture decisions provide rationale for similar choices
-- Lessons prevent repeating mistakes
-- Completion records show what was built and when
-
-## Standalone Usage
-
-When invoked directly (not via workflow):
-- Can summarize any recent work
-- Will still persist to engram
-- Useful for documenting ad-hoc implementations
+The Summary phase creates **compound learning**:
+- Future `/harness:feature` searches find past completions
+- Architecture decisions inform similar features
+- Lessons prevent repeated mistakes
+- Completion records track what was built

@@ -11,38 +11,34 @@ allowed-tools:
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. progress.md shows "Phase: Requirements"
-        2. requirements.md exists with completed sections
-        3. All identified questions were asked and answered
-        4. Out of scope items are documented
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-requirements.sh"
+          timeout: 10
 ---
 
 # Requirements Phase - Specification Gathering
 
-This phase resolves all ambiguities and documents complete requirements before design.
+Resolve ambiguities and document complete requirements. This phase ensures clarity before design.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_slug`: Feature identifier
-- `feature_description`: What to build
-- `artifacts_path`: Path to `.artifacts/{slug}/`
-
-**If invoked directly:** Check for existing `.artifacts/*/progress.md` files. If found, ask which feature. If none, ask user to describe what needs requirements gathering.
+Parse `$ARGUMENTS` for:
+- `--slug <name>`: Feature slug
+- `--description "<text>"`: Feature description
+- `--artifacts <path>`: Artifacts directory path
 
 ## Phase Execution
+
+Execute these steps IN ORDER. Do NOT skip steps.
 
 ### Step 1: Load Context
 
 Read existing artifacts:
-- `{artifacts_path}/progress.md` - Current state, feature overview
-- Any exploration findings if Explore phase completed
+- `{artifacts_path}/progress.md` - Current state, exploration findings
+- Check for any exploration notes
 
-Search engram for similar requirements work:
+Search engram:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
@@ -60,171 +56,135 @@ mcp__plugin_engram-mcp_engram__memory_insights
 ### Step 2: Update Progress
 
 Edit `progress.md`:
-- Set Phase to "Requirements"
-- Check off "Codebase Exploration" (if came from Explore)
+- Change "Phase:" to "Requirements"
+- Check off "Codebase Exploration"
 - Add session log entry
 
 ### Step 3: Identify Ambiguities
 
-Review the feature description and exploration findings. Identify underspecified aspects:
+Review feature description and exploration. Categorize what needs clarification:
 
-**Functional:**
-- Core behavior details
-- Edge cases
-- Error handling
-- Input validation
+**Functional:** Core behavior, edge cases, error handling
+**Integration:** How it connects, data flow, APIs
+**Non-functional:** Performance, security, accessibility
+**Scope:** What's in, what's out, future considerations
 
-**Integration:**
-- How it connects to existing features
-- Data flow
-- API contracts
+### Step 4: Ask Questions (If Needed)
 
-**Non-functional:**
-- Performance requirements
-- Security considerations
-- Accessibility needs
-- Browser/platform support
-
-**Scope:**
-- What's explicitly included
-- What's explicitly excluded
-- Future considerations (not now)
-
-### Step 4: Ask Questions Systematically
+ONLY ask questions if genuinely unclear. Maximum 3 questions total.
 
 Present questions ONE AT A TIME using AskUserQuestion:
 
-Format each question:
 ```
-**Question {N}/{Total}**: {specific question}
+Question {N}/{Total}: {specific question}
 
-**Context:** {why this matters}
+Context: {why this matters for implementation}
 
-**Recommendation:** {your suggested answer with rationale}
+Recommendation: {your suggested answer}
 ```
 
-Wait for user answer before asking next question.
-
-If user says "whatever you think is best" → apply the recommendation.
+Accept "whatever you think is best" → apply recommendation.
 
 Track all Q&A for documentation.
 
 ### Step 5: Create Requirements Document
 
-After all questions answered, write `.artifacts/{slug}/requirements.md`:
+Write `.artifacts/{slug}/requirements.md`:
 
 ```markdown
 # {Feature Name} - Requirements
 
 ## Overview
-{Brief description of the feature}
+{2-3 sentence description}
 
 ## Problem Statement
-{What problem this solves and why it matters}
+{What problem this solves}
 
 ## User Stories
-- As a {user type}, I want to {action} so that {benefit}
-- As a {user type}, I want to {action} so that {benefit}
+- As a {user}, I want {action} so that {benefit}
+- As a {user}, I want {action} so that {benefit}
 
 ## Functional Requirements
 
 ### Core Functionality
-1. {Requirement with clear acceptance criteria}
-2. {Requirement with clear acceptance criteria}
+1. {Requirement} - {acceptance criteria}
+2. {Requirement} - {acceptance criteria}
 
 ### Edge Cases
-1. {Edge case}: {expected behavior}
-2. {Edge case}: {expected behavior}
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| {edge case} | {behavior} |
 
 ### Error Handling
-1. {Error scenario}: {how to handle}
-2. {Error scenario}: {how to handle}
+| Error Condition | Response |
+|-----------------|----------|
+| {condition} | {handling} |
 
 ## Non-Functional Requirements
 
 ### Performance
-- {Constraint or target}
+- {constraint or target}
 
 ### Security
-- {Security requirement}
+- {security consideration}
 
 ### Accessibility
-- {A11y requirement}
-
-### Compatibility
-- {Platform/browser requirements}
+- {a11y requirement}
 
 ## Clarifications
+{If questions were asked}
 
-### Q: {Question asked}
-**A:** {User's answer}
-**Rationale:** {Why this decision}
-
-### Q: {Question asked}
-**A:** {User's answer}
-**Rationale:** {Why this decision}
+### Q: {question}
+**A:** {answer}
+**Rationale:** {why this decision}
 
 ## Out of Scope
-- {Explicitly excluded item} - {why excluded}
-- {Future consideration} - {when to revisit}
-
-## Dependencies
-- {External dependency}
-- {Internal dependency}
+- {excluded item} - {why}
+- {future consideration} - {when to revisit}
 
 ## Success Criteria
-- [ ] {Measurable criterion}
-- [ ] {Measurable criterion}
+- [ ] {measurable criterion}
+- [ ] {measurable criterion}
 ```
 
-### Step 6: Persist Decisions to Engram
+### Step 6: Persist to Engram
 
-Record key requirement decisions:
+Record key decisions:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_decision
-  content: "For {feature}: Decided {decision}. Rationale: {why}. Alternatives considered: {alternatives}."
+  content: "For {feature}: {decision}. Rationale: {why}."
   category: "implementation"
-  alternatives: ["{alt1}", "{alt2}"]
+  alternatives: ["{considered alternatives}"]
 ```
-
-If important scope decisions made:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_remember
-  content: "{feature} scope: Includes {in_scope}. Excludes {out_of_scope}. Key constraint: {constraint}."
+  content: "{feature} scope: In={in_scope}. Out={out_of_scope}. Key constraint: {constraint}."
   tags: ["requirements", "{slug}"]
 ```
 
 ### Step 7: Commit Requirements
 
-Commit the requirements document:
-
 ```bash
-git add .artifacts/{feature-slug}/
-git commit -m "docs({feature-slug}): finalize requirements"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): finalize requirements"
 ```
 
-### Step 8: Prepare Handoff
+### Step 8: Output Completion
 
-Summarize for Design phase:
-- Top 3-5 most critical requirements
-- Key constraints that will influence design
-- Any technical decisions already implied by requirements
+```
+REQUIREMENTS COMPLETE
+Core requirements: {count}
+Edge cases documented: {count}
+Out of scope items: {count}
 
-## Completion Criteria
+```
 
-Stop hook validates:
-1. `progress.md` updated with "Phase: Requirements"
-2. `requirements.md` exists with all sections populated
-3. All questions asked and answered
-4. Out of scope documented
+## Critical Rules
 
-## Engram Integration
-
-| When | Tool | Purpose |
-|------|------|---------|
-| Start | `memory_search` | Find similar requirements |
-| Start | `memory_insights` | Get past requirement decisions |
-| End | `memory_decision` | Record key decisions |
-| End | `memory_remember` | Persist scope boundaries |
+1. NEVER ask more than 3 questions total
+2. ALWAYS create requirements.md before completing
+3. ALWAYS document Out of Scope section
+4. ALWAYS include success criteria
+5. Accept defaults when user defers decisions

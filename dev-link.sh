@@ -5,7 +5,8 @@
 set -e
 
 CACHE_BASE="$HOME/.claude/plugins/cache/astrosteveo-marketplace"
-DEV_BASE="$HOME/workspace/marketplace/plugins"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEV_BASE="$SCRIPT_DIR/plugins"
 DEV_VERSION="9.9.9-dev"
 
 # Discover all plugins dynamically

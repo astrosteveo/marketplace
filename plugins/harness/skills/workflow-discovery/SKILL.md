@@ -8,40 +8,40 @@ allowed-tools:
   - Write
   - Bash(mkdir:*)
   - Bash(ls:*)
+  - Bash(git:*)
   - AskUserQuestion
   - mcp__plugin_engram-mcp_engram__*
 hooks:
   Stop:
-    - prompt: |
-        Before completing, validate:
-        1. Feature slug was generated (lowercase, hyphenated)
-        2. .artifacts/{slug}/ directory exists
-        3. progress.md was created with Phase: Discovery
-        4. User confirmed understanding of the feature
-
-        If validation fails, output what's missing. If passes, output "PHASE_COMPLETE".
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/scripts/validate-discovery.sh"
+          timeout: 10
 ---
 
 # Discovery Phase - Feature Initialization
 
-This phase understands the feature request and creates tracking infrastructure.
+Initialize feature tracking and understand the request. This phase creates the foundation for all subsequent phases.
 
-## Context
+## Context Parsing
 
-**If invoked via orchestrator:** Receives `$ARGUMENTS`:
-- `feature_description`: What the user wants to build
+Parse `$ARGUMENTS` for:
+- `feature_description` (required): What to build
+- `--slug <name>`: Optional explicit slug override
 
-**If invoked directly:** Parse `$ARGUMENTS` for feature description. If none provided, ask what feature the user wants to build.
+If no description provided and invoked directly, ask: "What feature would you like to build?"
 
 ## Phase Execution
 
-### Step 1: Search Engram for Similar Features
+Execute these steps IN ORDER. Do NOT skip steps.
 
-Before starting, check if similar features were built before:
+### Step 1: Search Engram for Context
+
+IMMEDIATELY search for relevant prior work:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_search
-  query: "{feature_description} feature implementation"
+  query: "{feature_description} implementation"
   n_results: 5
 ```
 
@@ -52,62 +52,52 @@ mcp__plugin_engram-mcp_engram__memory_insights
   n_results: 3
 ```
 
-If relevant findings exist, mention: "Found relevant context from past work: {brief summary}"
+If relevant context found, note it briefly: "Found prior work on {topic}."
 
 ### Step 2: Generate Feature Slug
 
-Create a slug from the feature description:
-- Lowercase
-- Replace spaces with hyphens
-- Remove special characters
-- Keep it short but descriptive
+Create a slug from the description:
+- Lowercase only
+- Hyphens instead of spaces
+- No special characters
+- Short but descriptive (3-5 words max)
 
-Examples:
-- "Add dark mode toggle" → `dark-mode-toggle`
-- "User authentication with OAuth" → `oauth-authentication`
-- "Fix memory leak in parser" → `fix-parser-memory-leak`
+**Examples:**
+| Description | Slug |
+|-------------|------|
+| "Add dark mode toggle" | `dark-mode-toggle` |
+| "User authentication with OAuth" | `oauth-authentication` |
+| "Fix memory leak in parser" | `parser-memory-leak-fix` |
 
 ### Step 3: Create Artifacts Directory
 
+Execute this command:
+
 ```bash
-mkdir -p .artifacts/{feature-slug}
+mkdir -p .artifacts/{slug}
 ```
 
-### Step 4: Clarify Feature Understanding (if needed)
+Verify the directory exists before proceeding.
 
-**Only ask questions if genuinely unclear.** If the request is specific enough to proceed, skip to Step 5.
+### Step 4: Assess Clarity
 
-If clarification needed, ask using AskUserQuestion:
-- What problem does this feature solve?
-- What should the feature do (high-level)?
-- Are there any constraints or requirements?
+Evaluate if the request is clear enough to proceed:
 
-**Keep questions minimal.** Better to make reasonable assumptions and validate in Requirements phase.
+**CLEAR (proceed without questions):**
+- Specific functionality described
+- Clear scope boundaries
+- Technical approach implied
 
-If user says "whatever you think is best" → apply reasonable defaults.
-
-### Step 5: Quick Confirmation
-
-Present a brief summary:
-
-```
-**Feature:** {name}
-**Purpose:** {what it does}
-**Scope:** {high-level scope}
-
-Proceeding with Discovery → Explore → Requirements...
-```
-
-**Only pause if:**
-- Feature scope is ambiguous
+**UNCLEAR (ask 1-2 questions max):**
+- Ambiguous scope
 - Multiple interpretations possible
-- User explicitly requested confirmation
+- Missing critical constraints
 
-**Otherwise:** State understanding and continue automatically. Requirements phase will validate details.
+If unclear, use AskUserQuestion with maximum 2 questions. Accept reasonable defaults for anything not specified.
 
-### Step 6: Create Progress Artifact
+### Step 5: Create Progress Artifact
 
-Write `.artifacts/{feature-slug}/progress.md`:
+Write `.artifacts/{slug}/progress.md`:
 
 ```markdown
 # {Feature Name} - Progress
@@ -115,7 +105,7 @@ Write `.artifacts/{feature-slug}/progress.md`:
 ## Status
 Phase: Discovery
 Started: {YYYY-MM-DD}
-Last Updated: {YYYY-MM-DD}
+Updated: {YYYY-MM-DD}
 
 ## Checklist
 - [x] Discovery
@@ -127,56 +117,50 @@ Last Updated: {YYYY-MM-DD}
 - [ ] Testing
 - [ ] Summary
 
-## Feature Overview
+## Feature
 **Description:** {description}
-**Problem:** {what problem it solves}
+**Problem:** {what it solves}
 **Scope:** {boundaries}
 
 ## Session Log
 ### {YYYY-MM-DD}
-- Initialized feature tracking
-- Request: {summary of user's request}
-- Understanding confirmed
+- Initialized tracking
+- Request: {user's original request}
 ```
 
-### Step 7: Persist to Engram
+### Step 6: Persist to Engram
 
-Record the feature initiation:
+Record feature start:
 
 ```
 mcp__plugin_engram-mcp_engram__memory_remember
-  content: "Started feature: {feature_description}. Slug: {slug}. Purpose: {purpose}."
+  content: "Started feature: {description}. Slug: {slug}. Purpose: {purpose}."
   tags: ["feature-start", "{slug}"]
 ```
 
-### Step 8: Commit Artifacts
-
-Commit the discovery artifacts:
+### Step 7: Commit Artifacts
 
 ```bash
-git add .artifacts/{feature-slug}/
-git commit -m "docs({feature-slug}): initialize feature tracking"
+git add .artifacts/{slug}/
+git commit -m "docs({slug}): initialize feature tracking"
 ```
 
-### Step 9: Prepare Handoff
+### Step 8: Output Completion
 
-Output summary for orchestrator/next phase:
-- Feature slug
-- Feature description
-- Artifacts path
-- Any important context from engram search
+Output this exact format for orchestrator handoff:
 
-## Completion Criteria
+```
+DISCOVERY COMPLETE
+Slug: {slug}
+Path: .artifacts/{slug}/
+Description: {description}
 
-Stop hook validates:
-1. Feature slug generated
-2. `.artifacts/{slug}/` directory exists
-3. `progress.md` created with "Phase: Discovery"
-4. User confirmed understanding
+```
 
-## Standalone Usage
+## Critical Rules
 
-When invoked directly (not via workflow):
-- Still create artifacts directory and progress.md
-- User can continue with `/harness:feature {slug}` later
-- Or just use this as a planning/clarification tool
+1. ALWAYS create the artifacts directory
+2. ALWAYS create progress.md before completing
+3. NEVER ask more than 2 clarifying questions
+4. NEVER complete without a valid slug
+5. Proceed automatically unless genuinely blocked
