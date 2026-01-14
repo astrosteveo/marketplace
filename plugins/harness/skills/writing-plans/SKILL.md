@@ -94,6 +94,61 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
 
+## Manual Test Checklist Section
+
+Every plan ends with a Manual Test Checklist. This goes after all tasks, before any closing notes.
+
+**Template:**
+
+```markdown
+---
+
+## Manual Test Checklist
+
+> **For Claude:** Present this checklist at appropriate checkpoints.
+> - subagent-driven-development: after all tasks, before finishing-a-development-branch
+> - executing-plans: relevant items after each batch
+
+### [Component/Area Name]
+<!-- Tasks N-M -->
+
+- [ ] [Concrete action] → [Expected result]
+```
+
+**Format:** `- [ ] [Action] → [Expected result]`
+
+**What to include:**
+- User-facing behavior automated tests don't fully cover
+- Visual/UI verification (layout, styling, responsiveness)
+- Integration points (API calls, database state, external services)
+- Error states and edge cases worth human verification
+
+**What NOT to include:**
+- Things fully covered by automated tests
+- Internal implementation details user can't observe
+- Vague items ("make sure it works")
+
+**Task mapping:** Add `<!-- Tasks N-M -->` comment after each group heading so executing-plans can identify relevant items per batch.
+
+**Example:**
+
+```markdown
+## Manual Test Checklist
+
+### Authentication
+<!-- Tasks 1-3 -->
+
+- [ ] Login with valid credentials → Redirects to /dashboard, shows username
+- [ ] Login with wrong password → Shows "Invalid credentials" error
+- [ ] Click "Logout" → Returns to /login, clears session
+
+### Dashboard
+<!-- Tasks 4-5 -->
+
+- [ ] Load with no data → Shows empty state message
+- [ ] Create item → Appears in list without refresh
+```
+
 ## Execution Handoff
 
 After saving the plan, offer execution choice:
