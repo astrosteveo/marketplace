@@ -1,10 +1,11 @@
 {
   "mcpServers": {
     "engram": {
-      "command": "uvx",
+      "command": "uv",
       "args": [
-        "--from",
-        "git+https://github.com/astrosteveo/engram",
+        "run",
+        "--directory",
+        "/home/astrosteveo/workspace/engram",
         "engram-mcp"
       ]
     }
