@@ -8,5 +8,3 @@ Thumbs.db
 *.swp
 *.swo
 
-# Artifacts (project-specific, not part of plugin)
-.artifacts/
