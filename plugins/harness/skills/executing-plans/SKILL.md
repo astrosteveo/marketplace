@@ -34,7 +34,18 @@ For each task:
 When batch complete:
 - Show what was implemented
 - Show verification output
-- Say: "Ready for feedback."
+- **Show relevant manual test items** (from plan's Manual Test Checklist, filtered by task numbers in `<!-- Tasks N-M -->` comments)
+- Say: "Ready for feedback. Please verify manual tests above."
+
+**Manual test presentation:**
+```
+**Manual tests for this batch:**
+
+### [Component]
+- [ ] [Action] → [Expected result]
+```
+
+If plan has no Manual Test Checklist section, skip this part.
 
 ### Step 4: Continue
 Based on feedback:
@@ -45,6 +56,8 @@ Based on feedback:
 ### Step 5: Complete Development
 
 After all tasks complete and verified:
+- Present any remaining manual test items not yet shown
+- Wait for user confirmation that all manual tests pass
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
 - **REQUIRED SUB-SKILL:** Use harness:finishing-a-development-branch
 - Follow that skill to verify tests, present options, execute choice
