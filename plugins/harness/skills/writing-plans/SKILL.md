@@ -15,7 +15,19 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
-**Save plans to:** `.artifacts/plans/YYYY-MM-DD-<feature-name>.md`
+## Artifact Structure
+
+**Save to:** `.artifacts/<feature-slug>/<feature-slug>-plan.md`
+
+```
+.artifacts/
+  <feature-slug>/
+    <feature-slug>-spec.md     # Created by brainstorming (WHAT)
+    <feature-slug>-design.md   # Created by brainstorming (HOW)
+    <feature-slug>-plan.md     # Created by this skill (execution steps)
+```
+
+**Before writing the plan:** Read the spec and design documents in `.artifacts/<feature-slug>/` to understand what you're implementing.
 
 ## Bite-Sized Task Granularity
 
@@ -34,6 +46,9 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 # [Feature Name] Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use harness:executing-plans to implement this plan task-by-task.
+
+**Spec:** `./<feature-slug>-spec.md`
+**Design:** `./<feature-slug>-design.md`
 
 **Goal:** [One sentence describing what this builds]
 
@@ -153,7 +168,7 @@ Every plan ends with a Manual Test Checklist. This goes after all tasks, before 
 
 After saving the plan, offer execution choice:
 
-**"Plan complete and saved to `.artifacts/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `.artifacts/<feature-slug>/<feature-slug>-plan.md`. Two execution options:**
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 

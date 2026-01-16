@@ -125,7 +125,7 @@ Let me know when complete, or report any issues found.
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read plan file once: .artifacts/plans/feature-plan.md]
+[Read plan file once: .artifacts/feature-name/feature-name-plan.md]
 [Extract all 5 tasks with full text and context]
 [Create TodoWrite with all tasks]
 
