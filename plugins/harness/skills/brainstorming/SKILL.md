@@ -11,6 +11,15 @@ Help turn ideas into specs (WHAT we're building) and designs (HOW we're building
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once requirements are clear, write the spec. Then explore approaches and present the design in small sections, checking after each section whether it looks right so far.
 
+## Prerequisites
+
+**First time in this project?** Check if setup is needed:
+```bash
+test -d .artifacts && gh repo view >/dev/null 2>&1 && echo "ready" || echo "needs setup"
+```
+
+If "needs setup": **REQUIRED SUB-SKILL:** Use harness:project-setup first.
+
 ## Project Tracking
 
 **Backlog:** GitHub issues with `enhancement` label
