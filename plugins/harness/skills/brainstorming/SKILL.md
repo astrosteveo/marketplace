@@ -11,6 +11,17 @@ Help turn ideas into specs (WHAT we're building) and designs (HOW we're building
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once requirements are clear, write the spec. Then explore approaches and present the design in small sections, checking after each section whether it looks right so far.
 
+## Project Tracking
+
+**Backlog:** GitHub issues with `enhancement` label
+**Active work:** `.artifacts/<feature-slug>/`
+**Completed:** `.artifacts/archive/<feature-slug>/`
+
+When starting a feature:
+- If working from a GitHub issue, reference it in the spec
+- Create `.artifacts/<feature-slug>/` for all artifacts
+- After completion, archive moves to `.artifacts/archive/`
+
 ## Artifact Structure
 
 **Save to:** `.artifacts/<feature-slug>/`
@@ -21,6 +32,8 @@ Start by understanding the current project context, then ask questions one at a 
     <feature-slug>-spec.md     # WHAT we're building
     <feature-slug>-design.md   # HOW we're building it
     <feature-slug>-plan.md     # Created later by writing-plans
+  archive/
+    <completed-feature>/       # Archived after completion
 ```
 
 ## The Process

@@ -82,6 +82,30 @@ When multiple skills could apply, use this order:
 
 The skill itself tells you which.
 
+## Capturing Issues
+
+When you discover bugs, improvement opportunities, or new feature ideas while working:
+
+1. **Don't lose them** - Note them immediately
+2. **Create GitHub issue** - Use `gh issue create` with appropriate labels
+3. **Stay focused** - Don't context-switch to fix unrelated issues
+
+```bash
+gh issue create --title "[scope] Brief description" --label "enhancement" --body "$(cat <<'EOF'
+## Problem
+What's wrong or missing
+
+## Proposed Solution
+How to fix it (if known)
+
+## Context
+Where this was discovered
+EOF
+)"
+```
+
+This keeps the backlog healthy without derailing current work.
+
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.

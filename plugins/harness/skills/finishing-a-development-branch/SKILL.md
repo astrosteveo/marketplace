@@ -107,7 +107,25 @@ Ready to proceed? (yes/no)
 
 **If yes:** Continue to Step 4.
 
-### Step 4: Determine Base Branch
+### Step 4: Capture Discovered Issues
+
+**Ask user:**
+
+```
+During this work, did you notice any bugs, improvement opportunities, or
+ideas for future features unrelated to this branch?
+
+If yes, I'll create GitHub issues before we finish.
+```
+
+**If issues mentioned:**
+```bash
+gh issue create --title "[scope] Brief description" --label "enhancement" --body "..."
+```
+
+Create one issue per item. This preserves insights without scope creep.
+
+### Step 5: Determine Base Branch
 
 ```bash
 # Try common base branches
@@ -116,7 +134,7 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 5: Present Options
+### Step 6: Present Options
 
 Present exactly these 4 options:
 
@@ -133,7 +151,7 @@ Which option?
 
 **Don't add explanation** - keep options concise.
 
-### Step 6: Execute Choice
+### Step 7: Execute Choice
 
 #### Option 1: Merge Locally
 
@@ -154,7 +172,7 @@ git merge <feature-branch>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 7)
+Then: Archive artifacts (Step 8) and cleanup worktree (Step 9)
 
 #### Option 2: Push and Create PR
 
@@ -173,7 +191,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 7)
+Then: Archive artifacts (Step 8) and cleanup worktree (Step 9)
 
 #### Option 3: Keep As-Is
 
@@ -201,9 +219,26 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 7)
+Then: Archive artifacts (Step 8) and cleanup worktree (Step 9)
 
-### Step 7: Cleanup Worktree
+### Step 8: Archive Artifacts
+
+**For Options 1 and 2 (merge/PR):**
+
+If `.artifacts/<feature-slug>/` exists for this feature:
+
+```bash
+mkdir -p .artifacts/archive
+mv .artifacts/<feature-slug> .artifacts/archive/
+git add .artifacts/
+git commit -m "chore: archive <feature-slug> artifacts"
+```
+
+**For Option 3:** Keep artifacts in place (work continues later).
+
+**For Option 4:** Delete artifacts with the branch.
+
+### Step 9: Cleanup Worktree
 
 **For Options 1, 2, 4:**
 
@@ -221,12 +256,12 @@ git worktree remove <worktree-path>
 
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
+| Option | Merge | Push | Archive | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------|---------------|----------------|
+| 1. Merge locally | ✓ | - | ✓ | - | ✓ |
+| 2. Create PR | - | ✓ | ✓ | ✓ | - |
+| 3. Keep as-is | - | - | - | ✓ | - |
+| 4. Discard | - | - | delete | - | ✓ (force) |
 
 ## Common Mistakes
 
@@ -265,6 +300,7 @@ git worktree remove <worktree-path>
 - Confirm user is satisfied with implementation before finishing
 - Present exactly 4 options
 - Get typed confirmation for Option 4
+- Archive artifacts for Options 1 & 2
 - Clean up worktree for Options 1 & 4 only
 
 ## Integration
