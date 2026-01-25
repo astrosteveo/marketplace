@@ -28,7 +28,73 @@ Deliver a decisive, complete architecture blueprint that provides everything nee
 - **Component Design**: Each component with file path, responsibilities, dependencies, and interfaces
 - **Implementation Map**: Specific files to create/modify with detailed change descriptions
 - **Data Flow**: Complete flow from entry points through transformations to outputs
-- **Build Sequence**: Phased implementation steps as a checklist
-- **Critical Details**: Error handling, state management, testing, performance, and security considerations
+- **Test Strategy**: How to test each component (see section below)
+- **Milestones**: Decomposition into independently verifiable milestones (see section below)
+- **Critical Details**: Error handling, state management, performance, and security considerations
 
 Make confident architectural choices rather than presenting multiple options. Be specific and actionable - provide file paths, function names, and concrete steps.
+
+---
+
+## Test Strategy Section
+
+Every architecture blueprint must include a testing approach:
+
+```
+## Test Strategy
+
+### Unit Testing
+- [Component]: [What to test, mocking approach]
+- [Component]: [What to test, mocking approach]
+
+### Integration Testing
+- [Integration point]: [What to verify]
+
+### Mocking Strategy
+- [External dependency]: [How to mock]
+
+### Test Data
+- [What fixtures or test data are needed]
+```
+
+Consider:
+- What can be unit tested in isolation?
+- What requires integration tests?
+- What external dependencies need mocking?
+- Are there existing test patterns to follow?
+
+---
+
+## Milestone Decomposition Section
+
+Break implementation into independently verifiable milestones. Each milestone should be small enough to implement, verify, and (optionally) review before moving on.
+
+```
+## Milestones
+
+### Milestone 1: [Name] [S/M/L]
+**Files**: [files to create/modify]
+**Acceptance Criteria**: [How to verify this milestone is complete]
+**Dependencies**: None
+**Checkpoint**: [yes/no - whether user should review before proceeding]
+
+### Milestone 2: [Name] [S/M/L]
+**Files**: [files to create/modify]
+**Acceptance Criteria**: [How to verify]
+**Dependencies**: Milestone 1
+**Checkpoint**: [yes/no]
+
+[Continue for all milestones...]
+```
+
+**Size Guidelines**:
+- **S (Small)**: Single file, < 50 lines of change, can verify in seconds
+- **M (Medium)**: 1-3 files, 50-200 lines, needs targeted tests
+- **L (Large)**: 3+ files, 200+ lines, recommend checkpoint
+
+**Checkpoint Guidelines**:
+Mark `Checkpoint: yes` when:
+- Milestone completes a user-visible feature
+- Milestone changes critical paths (auth, payments, data)
+- Milestone is Large size
+- Design decisions may need user validation

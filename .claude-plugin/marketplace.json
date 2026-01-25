@@ -59,6 +59,17 @@
       "source": "./plugins/claude-md-management",
       "category": "productivity",
       "homepage": "https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management"
+    },
+    {
+      "name": "superpowers",
+      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
+      "author": {
+        "name": "Jesse Vincent",
+        "email": "jesse@fsck.com"
+      },
+      "source": "./plugins/superpowers",
+      "category": "development",
+      "homepage": "https://github.com/obra/superpowers"
     }
   ]
 }
