@@ -13,7 +13,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+**Context:** Run in the current worktree by default. A separate worktree can be created on request using the brainstorming skill.
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 
@@ -102,9 +102,9 @@ After saving the plan, offer execution choice:
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 
-**2. Fresh Session (this terminal)** - Clear context and execute with full focus on implementation
+**2. Fresh Session (this terminal)** - Clear context and execute all tasks continuously with full focus on implementation
 
-**3. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+**3. Parallel Session (separate)** - Open new session with executing-plans, continuous execution with clean context
 
 **Which approach?"**
 

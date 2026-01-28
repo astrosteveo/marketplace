@@ -1,5 +1,5 @@
 ---
-description: Execute plan in batches with review checkpoints
+description: Execute plan with continuous task execution
 disable-model-invocation: true
 ---
 

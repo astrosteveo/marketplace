@@ -41,7 +41,7 @@ Start by understanding the current project context, then ask questions one at a 
 
 **Implementation (if continuing):**
 - Ask: "Ready to set up for implementation?"
-- Use superpowers:using-git-worktrees to create isolated workspace
+- Ask if they want a separate worktree (use superpowers:using-git-worktrees) or to proceed in the current worktree
 - Use superpowers:writing-plans to create detailed implementation plan
 
 ## Key Principles
