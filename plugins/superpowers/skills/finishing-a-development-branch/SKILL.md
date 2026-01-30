@@ -9,11 +9,21 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify branch → Run tests → Validate feature → Present options → Execute → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
 ## The Process
+
+### Step 0: Verify Feature Branch
+
+```bash
+git branch --show-current
+```
+
+**If on main/master:** Stop. "You're on `<branch>`. This skill is for finishing feature branches. Create a feature branch first."
+
+**If on feature branch:** Continue.
 
 ### Step 1: Verify Tests
 
@@ -37,7 +47,23 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
-### Step 2: Determine Base Branch
+### Step 2: Validate the Feature
+
+Ask the user to confirm the feature works:
+
+```
+Tests pass. Before we finish, please verify the feature works as expected.
+
+[Provide 2-3 specific things to check based on what was implemented]
+
+Does everything look good?
+```
+
+**If issues found:** Fix them before proceeding.
+
+**If validated:** Continue to Step 3.
+
+### Step 3: Determine Base Branch
 
 ```bash
 # Try common base branches
@@ -46,7 +72,7 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 4: Present Options
 
 Present exactly these 4 options:
 
@@ -63,7 +89,7 @@ Which option?
 
 **Don't add explanation** - keep options concise.
 
-### Step 4: Execute Choice
+### Step 5: Execute Choice
 
 #### Option 1: Merge Locally
 
@@ -84,7 +110,7 @@ git merge <feature-branch>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 2: Push and Create PR
 
@@ -103,7 +129,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 3: Keep As-Is
 
@@ -131,9 +157,9 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
-### Step 5: Cleanup Worktree
+### Step 6: Cleanup Worktree
 
 **For Options 1, 2, 4:**
 
@@ -179,13 +205,17 @@ git worktree remove <worktree-path>
 ## Red Flags
 
 **Never:**
+- Run this skill on main/master
 - Proceed with failing tests
+- Skip user validation of the feature
 - Merge without verifying tests on result
 - Delete work without confirmation
 - Force-push without explicit request
 
 **Always:**
+- Verify you're on a feature branch first
 - Verify tests before offering options
+- Ask user to validate the feature works
 - Present exactly 4 options
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
