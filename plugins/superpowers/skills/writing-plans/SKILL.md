@@ -17,7 +17,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Save plans to:** `docs/plans/{slug}/plan.md`
 
-**Context:** Run in the current worktree by default. A separate worktree can be created on request using the brainstorming skill.
+**Context:** Run in the current worktree by default. If a separate worktree was created (via superpowers:using-git-worktrees), work in that worktree.
 
 ## Bite-Sized Task Granularity
 

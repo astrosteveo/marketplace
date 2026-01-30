@@ -13,35 +13,36 @@ Start by understanding the current project context, then ask questions one at a 
 
 ## The Process
 
-**Ground in project vision (required):**
-- Check for `docs/GDD.md` and/or `docs/PRD.md`
-- If found, read them first to understand the project's north star
-- Identify which milestone this feature belongs to
-- Reference the vision when discussing how this feature fits
-- **If no vision doc exists, determine what's needed:**
+**Ground in project vision (REQUIRED - NO EXCEPTIONS):**
 
-  **Which document(s) does this project need?**
+**You CANNOT design features without a vision doc. This is not optional.**
 
-  | Project Type | Documents | Examples |
-  |--------------|-----------|----------|
-  | Pure game | GDD.md only | Platformer, puzzle game, visual novel |
-  | App/service/tool | PRD.md only | SaaS, CLI tool, API, library |
-  | Game + complex app logic | Both GDD.md + PRD.md | Game + custom engine, game + backend service, game + level editor tool |
+1. Check for `docs/GDD.md` and/or `docs/PRD.md`
+2. If found: read them, identify which milestone this feature belongs to
+3. **If NOT found: STOP. Create the vision doc BEFORE any feature discussion.**
 
-  **Decision flow:**
-  1. Is there a game with creative vision, player experience, art/audio direction? → Needs GDD.md
-  2. Is there a product/tool/service with technical requirements, user personas, success metrics? → Needs PRD.md
-  3. Both apply? → Create both, with GDD.md focused on the game experience and PRD.md focused on the tooling/infrastructure
+**Creating vision docs (when missing):**
 
-  **When both are needed:**
-  - GDD.md: Game vision, core loop, player experience, art/audio direction, gameplay milestones
-  - PRD.md: Engine/tool vision, technical architecture, API design, tooling milestones
-  - Cross-reference between them where they interact
+| Project Type | Document | Examples |
+|--------------|----------|----------|
+| Pure game | GDD.md | Platformer, puzzle game |
+| App/service/tool | PRD.md | SaaS, CLI, API, library |
+| Both | GDD.md + PRD.md | Game + backend, game + editor |
 
-  **Create the document(s):**
-  1. Ask which type(s) apply, with your recommendation based on context
-  2. Create `docs/GDD.md` and/or `docs/PRD.md` using templates from `templates/`
-  3. Fill in Vision and Core sections collaboratively before proceeding to feature design
+**Process:**
+1. Determine which doc(s) needed (recommend based on context)
+2. **Immediately create** `docs/GDD.md` and/or `docs/PRD.md` using templates from `templates/`
+3. Fill in Vision and Core sections collaboratively
+4. Commit the vision doc(s)
+5. **Only then** proceed to feature design
+
+**Red flags - you're skipping vision docs:**
+- "Let's just design the feature first"
+- "We can create the PRD later"
+- "The feature is simple, we don't need a vision doc"
+- Discussing feature architecture before vision doc exists
+
+All of these mean: STOP. Create vision doc first.
 
 **Understanding the idea:**
 - Check out the current project state (files, docs, recent commits)
@@ -69,10 +70,31 @@ Start by understanding the current project context, then ask questions one at a 
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
-**Implementation (if continuing):**
-- Ask: "Ready to set up for implementation?"
-- Ask if they want a separate worktree (use superpowers:using-git-worktrees) or to proceed in the current worktree
-- Use superpowers:writing-plans to create detailed implementation plan
+**Next steps (present these exact options):**
+
+After committing the design, ask: "Ready to set up for implementation?" Then present:
+
+| Option | What it means | When to use |
+|--------|---------------|-------------|
+| **A) Continue now, same worktree** | Create feature branch here, write implementation plan, start executing | Ready to implement immediately |
+| **B) Continue now, new worktree** | Use superpowers:using-git-worktrees, then write plan and execute | Want isolation from main workspace |
+| **C) New session, same worktree** | Stop here. User will start fresh session and say "implement [feature]" | Need a break, want fresh context |
+| **D) Stop here** | Design is done, come back whenever | Not ready to implement yet |
+
+**Interpreting responses:**
+- If user says just a letter (A/B/C/D), use that option
+- If user clarifies an option (e.g., "B should be new session"), they're CORRECTING your options - update your understanding
+- If unclear, ask for clarification - don't guess
+
+**For option A (same worktree):**
+1. Create feature branch: `git checkout -b feature/{slug}` (e.g., `feature/phase-4-pawn`)
+2. Use superpowers:writing-plans to create implementation plan
+3. Use superpowers:executing-plans to begin implementation
+
+**For option B (new worktree):**
+1. Use superpowers:using-git-worktrees (it creates the feature branch automatically)
+2. Use superpowers:writing-plans to create implementation plan
+3. Use superpowers:executing-plans to begin implementation
 
 ## Key Principles
 
