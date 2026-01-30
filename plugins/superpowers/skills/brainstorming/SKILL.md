@@ -13,12 +13,35 @@ Start by understanding the current project context, then ask questions one at a 
 
 ## The Process
 
-**Ground in project vision (if exists):**
-- Check for `docs/GDD.md` (games) or `docs/PRD.md` (products/apps)
-- If found, read it first to understand the project's north star
+**Ground in project vision (required):**
+- Check for `docs/GDD.md` and/or `docs/PRD.md`
+- If found, read them first to understand the project's north star
 - Identify which milestone this feature belongs to
 - Reference the vision when discussing how this feature fits
-- If no vision doc exists, ask if they'd like to create one first (templates in `templates/GDD.md` or `templates/PRD.md`)
+- **If no vision doc exists, determine what's needed:**
+
+  **Which document(s) does this project need?**
+
+  | Project Type | Documents | Examples |
+  |--------------|-----------|----------|
+  | Pure game | GDD.md only | Platformer, puzzle game, visual novel |
+  | App/service/tool | PRD.md only | SaaS, CLI tool, API, library |
+  | Game + complex app logic | Both GDD.md + PRD.md | Game + custom engine, game + backend service, game + level editor tool |
+
+  **Decision flow:**
+  1. Is there a game with creative vision, player experience, art/audio direction? → Needs GDD.md
+  2. Is there a product/tool/service with technical requirements, user personas, success metrics? → Needs PRD.md
+  3. Both apply? → Create both, with GDD.md focused on the game experience and PRD.md focused on the tooling/infrastructure
+
+  **When both are needed:**
+  - GDD.md: Game vision, core loop, player experience, art/audio direction, gameplay milestones
+  - PRD.md: Engine/tool vision, technical architecture, API design, tooling milestones
+  - Cross-reference between them where they interact
+
+  **Create the document(s):**
+  1. Ask which type(s) apply, with your recommendation based on context
+  2. Create `docs/GDD.md` and/or `docs/PRD.md` using templates from `templates/`
+  3. Fill in Vision and Core sections collaboratively before proceeding to feature design
 
 **Understanding the idea:**
 - Check out the current project state (files, docs, recent commits)

@@ -38,7 +38,10 @@ During implementation, you'll often discover logical next steps that aren't in s
 
 **Don't derail current work.** Instead:
 1. Note the idea
-2. Add it to `docs/GDD.md` or `docs/PRD.md` under "Future Ideas"
+2. Add it to the appropriate document's "Future Ideas" section:
+   - Game-related ideas → `docs/GDD.md`
+   - Tool/infrastructure ideas → `docs/PRD.md`
+   - If only one exists, use that one
 3. Continue with current task
 
 ### Step 4: Final Report
