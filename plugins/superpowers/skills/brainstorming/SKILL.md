@@ -13,6 +13,12 @@ Start by understanding the current project context, then ask questions one at a 
 
 ## The Process
 
+**Check for vision doc:**
+- Look for `docs/PRD.md` (apps/tools) or `docs/GDD.md` (games)
+- If missing, offer: "No vision doc found. Want to create a quick `docs/PRD.md` (or GDD.md) to capture the project vision first?"
+- If yes: create a minimal doc with Vision, Goals, and Non-Goals sections
+- If no: proceed without one
+
 **Understanding the idea:**
 - Check out the current project state first (files, docs, recent commits)
 - Ask questions one at a time to refine the idea
