@@ -29,15 +29,28 @@ For each task sequentially:
 3. Run verifications as specified
 4. Mark as completed
 
-### Step 3: Final Report
+### Step 3: Capture Out-of-Scope Ideas
+
+During implementation, you'll often discover logical next steps that aren't in scope:
+- "This would be cleaner if we also refactored X"
+- "Users will probably want Y after this ships"
+- "There's a performance improvement we could make here"
+
+**Don't derail current work.** Instead:
+1. Note the idea
+2. Add it to `docs/GDD.md` or `docs/PRD.md` under "Future Ideas"
+3. Continue with current task
+
+### Step 4: Final Report
 
 After all tasks complete:
 - Show what was implemented
 - Show verification output
+- List any out-of-scope ideas captured (if any)
 - Summarize any issues encountered along the way
 - Say: "All tasks complete. Ready for feedback."
 
-### Step 4: Complete Development
+### Step 5: Complete Development
 
 After all tasks complete and verified:
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."

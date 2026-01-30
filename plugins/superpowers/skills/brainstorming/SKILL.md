@@ -13,8 +13,15 @@ Start by understanding the current project context, then ask questions one at a 
 
 ## The Process
 
+**Ground in project vision (if exists):**
+- Check for `docs/GDD.md` (games) or `docs/PRD.md` (products/apps)
+- If found, read it first to understand the project's north star
+- Identify which milestone this feature belongs to
+- Reference the vision when discussing how this feature fits
+- If no vision doc exists, ask if they'd like to create one first (templates in `templates/GDD.md` or `templates/PRD.md`)
+
 **Understanding the idea:**
-- Check out the current project state first (files, docs, recent commits)
+- Check out the current project state (files, docs, recent commits)
 - Ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
@@ -35,7 +42,7 @@ Start by understanding the current project context, then ask questions one at a 
 ## After the Design
 
 **Documentation:**
-- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design to `docs/plans/{slug}/design.md`
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 

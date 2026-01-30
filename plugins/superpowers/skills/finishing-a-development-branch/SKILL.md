@@ -7,11 +7,13 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Overview
 
-Guide completion of development work by presenting clear options and handling chosen workflow.
+Guide completion of feature branch work by presenting clear options for integrating back to main.
 
 **Core principle:** Verify tests → Present options → Execute choice → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+**Expected state:** On a feature branch (`{type}/{slug}`) with all work committed and tests passing.
 
 ## The Process
 
@@ -37,7 +39,15 @@ Stop. Don't proceed to Step 2.
 
 **If tests pass:** Continue to Step 2.
 
-### Step 2: Determine Base Branch
+### Step 2: Capture Any Remaining Out-of-Scope Ideas
+
+Before finishing, ask: "Did you notice any features or improvements that were out of scope but worth capturing?"
+
+If yes:
+- Add them to `docs/GDD.md` or `docs/PRD.md` under "Future Ideas"
+- These are good ideas that didn't make the pragmatic cut for this feature
+
+### Step 3: Determine Base Branch
 
 ```bash
 # Try common base branches
@@ -46,14 +56,14 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 4: Present Options
 
 Present exactly these 4 options:
 
 ```
-Implementation complete. What would you like to do?
+Implementation complete on <branch-name>. What would you like to do?
 
-1. Merge back to <base-branch> locally
+1. Merge back to <base-branch> (Recommended)
 2. Push and create a Pull Request
 3. Keep the branch as-is (I'll handle it later)
 4. Discard this work
@@ -63,7 +73,7 @@ Which option?
 
 **Don't add explanation** - keep options concise.
 
-### Step 4: Execute Choice
+### Step 5: Execute Choice
 
 #### Option 1: Merge Locally
 
@@ -133,7 +143,7 @@ git branch -D <feature-branch>
 
 Then: Cleanup worktree (Step 5)
 
-### Step 5: Cleanup Worktree
+### Step 6: Cleanup Worktree
 
 **For Options 1, 2, 4:**
 

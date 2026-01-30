@@ -13,6 +13,20 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
+## Branch Naming Convention
+
+All feature branches use the format: `{type}/{slug}`
+
+| Type | Use Case | Example |
+|------|----------|---------|
+| `feature` | New functionality | `feature/auth-system` |
+| `fix` | Bug fixes | `fix/login-redirect` |
+| `refactor` | Code restructuring | `refactor/api-cleanup` |
+| `docs` | Documentation only | `docs/api-reference` |
+| `test` | Test additions/fixes | `test/auth-coverage` |
+
+The `{slug}` should match the plan directory: branch `feature/auth-system` → plan at `docs/plans/auth-system/plan.md`
+
 ## Directory Selection Process
 
 Follow this priority order:
@@ -93,8 +107,8 @@ case $LOCATION in
     ;;
 esac
 
-# Create worktree with new branch
-git worktree add "$path" -b "$BRANCH_NAME"
+# Create worktree with new branch (using {type}/{slug} convention)
+git worktree add "$path" -b "$BRANCH_NAME"  # e.g., feature/auth-system
 cd "$path"
 ```
 
@@ -182,11 +196,12 @@ You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 
 [Check .worktrees/ - exists]
 [Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Create worktree: git worktree add .worktrees/auth -b feature/auth]
+[Create worktree: git worktree add .worktrees/auth-system -b feature/auth-system]
 [Run npm install]
 [Run npm test - 47 passing]
 
-Worktree ready at /Users/jesse/myproject/.worktrees/auth
+Worktree ready at /Users/jesse/myproject/.worktrees/auth-system
+Branch: feature/auth-system
 Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
 ```

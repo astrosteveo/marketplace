@@ -13,9 +13,11 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** Run in the current worktree by default. A separate worktree can be created on request using the brainstorming skill.
+**Branch:** All work happens on a feature branch: `{type}/{slug}` (e.g., `feature/auth-system`, `fix/login-bug`, `refactor/api-cleanup`)
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/plans/{slug}/plan.md`
+
+**Context:** Run in the current worktree by default. A separate worktree can be created on request using the brainstorming skill.
 
 ## Bite-Sized Task Granularity
 
@@ -96,9 +98,16 @@ git commit -m "feat: add specific feature"
 
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+After saving the plan:
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Three execution options:**
+1. **Create the feature branch** (if not already on one):
+   ```bash
+   git checkout -b {type}/{slug}  # e.g., feature/auth-system
+   ```
+
+2. **Offer execution choice:**
+
+**"Plan complete and saved to `docs/plans/{slug}/plan.md`. Three execution options:**
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 
@@ -116,7 +125,7 @@ After saving the plan, offer execution choice:
 **If Fresh Session chosen:**
 - Instruct user to do two steps:
   1. Type `/clear`
-  2. Then type `/superpowers:execute-plan docs/plans/<actual-filename>.md`
+  2. Then type `/superpowers:execute-plan docs/plans/{slug}/plan.md`
 - Benefits: Clean context, no accumulated conversation overhead, full focus on execution
 
 **If Parallel Session chosen:**
