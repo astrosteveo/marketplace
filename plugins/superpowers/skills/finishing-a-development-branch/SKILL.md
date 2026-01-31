@@ -1,21 +1,21 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: Use when implementation is complete, all tests pass, and you need to integrate the work - validates, updates docs, and creates PR
 ---
 
 # Finishing a Development Branch
 
 ## Overview
 
-Guide completion of development work by presenting clear options and handling chosen workflow.
+Guide completion of development work through validation, documentation, and PR creation.
 
-**Core principle:** Verify branch → Run tests → Validate feature → Present options → Execute → Clean up.
+**Core principle:** Verify branch → Run tests → Manual validation → Update docs → Final commit → Create PR.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
 ## The Process
 
-### Step 0: Verify Feature Branch
+### Step 1: Verify Feature Branch
 
 ```bash
 git branch --show-current
@@ -25,99 +25,80 @@ git branch --show-current
 
 **If on feature branch:** Continue.
 
-### Step 1: Verify Tests
-
-**Before presenting options, verify tests pass:**
+### Step 2: Run Tests
 
 ```bash
 # Run project's test suite
 npm test / cargo test / pytest / go test ./...
 ```
 
-**If tests fail:**
-```
-Tests failing (<N> failures). Must fix before completing:
+**If tests fail:** Stop. Fix failures before proceeding.
 
-[Show failures]
+**If tests pass:** Continue.
 
-Cannot proceed with merge/PR until tests pass.
-```
+### Step 3: Manual Validation
 
-Stop. Don't proceed to Step 2.
-
-**If tests pass:** Continue to Step 2.
-
-### Step 2: Validate the Feature
-
-Ask the user to confirm the feature works:
+Ask the user to validate:
 
 ```
-Tests pass. Before we finish, please verify the feature works as expected.
+Tests pass. Please verify the feature works as expected:
 
-[Provide 2-3 specific things to check based on what was implemented]
+1. [Specific thing to check based on implementation]
+2. [Another specific thing to check]
+3. [Edge case or integration point to verify]
 
-Does everything look good?
+Try these out and let me know if everything looks good, or if you find any issues.
 ```
 
-**If issues found:** Fix them before proceeding.
+**If issues found:** Fix them, re-run tests, ask again.
 
-**If validated:** Continue to Step 3.
+**If validated:** Continue.
 
-### Step 3: Determine Base Branch
+### Step 4: Update Documentation
+
+Review and update relevant docs based on what changed:
+
+**CLAUDE.md** - Add any new patterns, conventions, or learnings discovered during implementation.
+
+**PRD.md / GDD.md** - Update feature status in milestone tables. Capture any out-of-scope ideas discovered in "Future Ideas" section.
+
+**README.md** - Update if the feature affects usage, setup, or public API.
+
+Only update docs that are relevant to the changes. Skip if nothing meaningful to add.
+
+### Step 5: Final Commit
+
+If docs were updated:
 
 ```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+git add -A
+git commit -m "docs: update documentation for <feature>"
 ```
 
-Or ask: "This branch split from main - is that correct?"
-
-### Step 4: Present Options
-
-Present exactly these 4 options:
+### Step 6: Present Options
 
 ```
-Implementation complete. What would you like to do?
+Ready to create PR. Which workflow?
 
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
+1. Create PR for review (push, create PR, wait for review)
+2. Create PR and merge immediately (push, create PR, merge, cleanup)
+3. Merge locally to main (skip PR - for trivial one-offs only)
+4. Keep the branch as-is (I'll handle it later)
+5. Discard this work
 
 Which option?
 ```
 
-**Don't add explanation** - keep options concise.
+**Note:** Options 1-2 are the standard workflow. Option 3 bypasses PR history - only use for trivial changes that don't need release note visibility.
 
-### Step 5: Execute Choice
+### Step 7: Execute Choice
 
-#### Option 1: Merge Locally
-
-```bash
-# Switch to base branch
-git checkout <base-branch>
-
-# Pull latest
-git pull
-
-# Merge feature branch
-git merge <feature-branch>
-
-# Verify tests on merged result
-<test command>
-
-# If tests pass
-git branch -d <feature-branch>
-```
-
-#### Option 2: Push and Create PR
+#### Option 1: Create PR for Review
 
 ```bash
-# Push branch
 git push -u origin <feature-branch>
 
-# Create PR
-gh pr create --title "<title>" --body "$(cat <<'EOF'
+gh pr create --title "<concise title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets of what changed>
 
@@ -127,11 +108,78 @@ EOF
 )"
 ```
 
-#### Option 3: Keep As-Is
+Report PR URL. Done.
+
+**Note:** After PR is merged externally, run cleanup manually:
+```bash
+git checkout <base-branch> && git pull
+git branch -d <feature-branch>
+mkdir -p docs/plans/_archived && mv docs/plans/<slug> docs/plans/_archived/
+git add docs/plans/ && git commit -m "chore: archive <slug> plan"
+```
+
+#### Option 2: Create PR and Merge Immediately
+
+```bash
+# Push and create PR
+git push -u origin <feature-branch>
+
+gh pr create --title "<concise title>" --body "$(cat <<'EOF'
+## Summary
+<2-3 bullets of what changed>
+
+## Test Plan
+- [x] Tests passing
+- [x] Manual validation complete
+EOF
+)"
+
+# Merge via GitHub (keeps PR history for release notes)
+gh pr merge --squash --delete-branch
+
+# Sync local
+git checkout <base-branch>
+git pull
+
+# Archive the plan
+mkdir -p docs/plans/_archived
+mv docs/plans/<slug> docs/plans/_archived/
+git add docs/plans/
+git commit -m "chore: archive <slug> plan"
+git push
+```
+
+Report: "PR merged and plan archived."
+
+#### Option 3: Merge Locally (Skip PR)
+
+**For trivial one-offs only.** This bypasses PR history and won't appear in auto-generated release notes.
+
+```bash
+git checkout <base-branch>
+git pull
+git merge <feature-branch>
+
+# Verify tests on merged result
+<test command>
+
+# If tests pass
+git branch -d <feature-branch>
+git push
+
+# Archive the plan
+mkdir -p docs/plans/_archived
+mv docs/plans/<slug> docs/plans/_archived/
+git add docs/plans/
+git commit -m "chore: archive <slug> plan"
+git push
+```
+
+#### Option 4: Keep As-Is
 
 Report: "Keeping branch `<name>` for later."
 
-#### Option 4: Discard
+#### Option 5: Discard
 
 **Confirm first:**
 ```
@@ -142,8 +190,6 @@ This will permanently delete:
 Type 'discard' to confirm.
 ```
 
-Wait for exact confirmation.
-
 If confirmed:
 ```bash
 git checkout <base-branch>
@@ -152,46 +198,34 @@ git branch -D <feature-branch>
 
 ## Quick Reference
 
-| Option | Merge | Push | Cleanup Branch |
-|--------|-------|------|----------------|
-| 1. Merge locally | ✓ | - | ✓ |
-| 2. Create PR | - | ✓ | - |
-| 3. Keep as-is | - | - | - |
-| 4. Discard | - | - | ✓ (force) |
+| Option | Push | PR | Merge | Cleanup | Archive Plan |
+|--------|------|-----|-------|---------|--------------|
+| 1. PR for review | ✓ | ✓ | wait | manual | manual |
+| 2. PR and merge | ✓ | ✓ | ✓ | ✓ | ✓ |
+| 3. Merge locally | ✓ | - | ✓ | ✓ | ✓ |
+| 4. Keep as-is | - | - | - | - | - |
+| 5. Discard | - | - | - | ✓ (force) | - |
 
-## Common Mistakes
-
-**Skipping test verification**
-- **Problem:** Merge broken code, create failing PR
-- **Fix:** Always verify tests before offering options
-
-**Open-ended questions**
-- **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
-
-**No confirmation for discard**
-- **Problem:** Accidentally delete work
-- **Fix:** Require typed "discard" confirmation
+Options 1-2 are the proper workflow (PRs for release notes). Option 3 is for trivial one-offs only.
 
 ## Red Flags
 
 **Never:**
 - Run this skill on main/master
 - Proceed with failing tests
-- Skip user validation of the feature
-- Merge without verifying tests on result
-- Delete work without confirmation
-- Force-push without explicit request
+- Skip manual validation
+- Create PR without running tests
+- Delete work without typed confirmation
 
 **Always:**
-- Verify you're on a feature branch first
-- Verify tests before offering options
-- Ask user to validate the feature works
-- Present exactly 4 options
-- Get typed confirmation for Option 4
+- Verify feature branch first
+- Run tests before validation
+- Give specific validation steps
+- Update relevant docs before PR
+- Use `gh pr merge` to keep PR history for release notes
 
 ## Integration
 
 **Called by:**
-- subagent-driven-development (Step 7)
-- executing-plans (Step 5)
+- subagent-driven-development (final step)
+- executing-plans (final step)
