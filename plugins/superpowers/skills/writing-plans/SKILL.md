@@ -17,8 +17,6 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Save plans to:** `docs/plans/{slug}/plan.md`
 
-**Context:** Run in the current worktree by default. If a separate worktree was created (via superpowers:using-git-worktrees), work in that worktree.
-
 ## Bite-Sized Task Granularity
 
 **Each step is one action (2-5 minutes):**
@@ -129,5 +127,5 @@ After saving the plan:
 - Benefits: Clean context, no accumulated conversation overhead, full focus on execution
 
 **If Parallel Session chosen:**
-- Guide them to open new session in worktree
+- Guide them to open new terminal session
 - **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
