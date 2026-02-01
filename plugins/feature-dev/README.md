@@ -1,21 +1,21 @@
 # Feature Development Plugin
 
-A comprehensive, structured workflow for feature development with specialized agents for codebase exploration, architecture design, testing, and quality review.
+A pragmatic workflow for feature development with specialized agents for codebase exploration, architecture design, and quality review.
 
 ## Overview
 
-The Feature Development Plugin provides a systematic 7-phase approach to building new features. Instead of jumping straight into code, it guides you through understanding the codebase, asking clarifying questions, designing architecture with test strategies, implementing incrementally with verification, and ensuring quality—resulting in better-designed, well-tested features that integrate seamlessly with your existing code.
+The Feature Development Plugin guides you through building features with just enough structure to do it well, without over-planning. It helps you understand the codebase, brainstorm approaches, design one good solution, then build iteratively.
 
 ## Philosophy
 
-Building features requires more than just writing code. You need to:
-- **Understand the codebase** before making changes
-- **Ask questions** to clarify ambiguous requirements
-- **Design thoughtfully** with test strategies before implementing
-- **Implement incrementally** with verification at each milestone
-- **Review for quality** after building
+**Pragmatic over perfect.** This plugin:
+- **Brainstorms with you** - shares ideas early, gets your input
+- **Asks only critical questions** - doesn't interrogate about every edge case
+- **Designs one good approach** - doesn't present menus of options
+- **Builds and adjusts** - ships working code, then iterates
+- **Reviews what matters** - catches real bugs, skips nitpicks
 
-This plugin embeds these practices into a structured workflow that runs automatically when you use the `/feature-dev` command.
+The goal is momentum: understand enough → design something solid → build it → ship it.
 
 ## Command: `/feature-dev`
 
@@ -33,498 +33,234 @@ Or simply:
 
 The command will guide you through the entire process interactively.
 
-## The 7-Phase Workflow
+## The Workflow
 
-### Phase 1: Discovery
+### Phase 1: Discovery & Brainstorm
 
-**Goal**: Understand what needs to be built
+**Goal**: Understand the feature and brainstorm ideas together
 
 **What happens:**
-- Clarifies the feature request if it's unclear
-- Asks what problem you're solving
-- Identifies constraints and requirements
-- Summarizes understanding and confirms with you
+- Shares initial take on what the feature involves
+- Brainstorms approaches with you ("Here's what I'm thinking...")
+- Asks about hard constraints (if any)
+- Agrees on direction quickly
 
 **Example:**
 ```
 You: /feature-dev Add caching
-Claude: Let me understand what you need...
-        - What should be cached? (API responses, computed values, etc.)
-        - What are your performance requirements?
-        - Do you have a preferred caching solution?
+Claude: Caching - got it. Looking at your codebase, you're using Redis elsewhere,
+        so I'm thinking we add a cache layer to your API service using the same
+        Redis setup. We could cache at the route level or the service level -
+        I'd lean toward service level since that's where your data fetching happens.
+        What do you think? Any specific endpoints you're most concerned about?
 ```
 
 ### Phase 2: Codebase Exploration
 
-**Goal**: Understand relevant existing code, patterns, and testing approach
+**Goal**: Understand relevant existing code and patterns
 
 **What happens:**
-- Launches 2-3 `code-explorer` agents in parallel
-- **NEW**: Launches 1 `code-tester` agent for test pattern discovery
-- Agents return comprehensive analyses with key files to read
-- Claude reads all identified files to build deep understanding
-- Presents comprehensive summary of findings **including testing conventions**
-
-**Agents launched:**
-- "Find features similar to [feature] and trace implementation"
-- "Map the architecture and abstractions for [area]"
-- "Discover testing patterns, frameworks, and conventions"
+- Launches `code-explorer` agents to analyze relevant parts of codebase
+- Discovers testing patterns and conventions
+- Reads key files to build understanding
+- Presents summary of findings
 
 **Example output:**
 ```
 Found similar features:
-- User authentication (src/auth/): Uses JWT tokens, middleware pattern
-- Session management (src/session/): Redis-backed, 24hr expiry
+- User authentication (src/auth/): JWT tokens, middleware pattern
+- Session management (src/session/): Redis-backed
 
-Testing approach discovered:
-- Framework: Jest with ts-jest
-- Location: __tests__/ directories alongside source
-- Patterns: AAA pattern, mock factories in __mocks__/
-- Coverage threshold: 80%
+Testing: Jest with ts-jest, tests in __tests__/ directories
 ```
 
-### Phase 3: Clarifying Questions
+### Phase 3: Quick Clarifications
 
-**Goal**: Fill in gaps and resolve all ambiguities
+**Goal**: Resolve critical blockers (not every edge case)
 
 **What happens:**
-- Reviews codebase findings and feature request
-- Identifies underspecified aspects:
-  - Edge cases, error handling, integration points
-  - Backward compatibility, performance needs
-  - **Testing requirements and preferences**
-- Presents all questions in an organized list
-- **Waits for your answers before proceeding**
+- Identifies only critical unknowns that affect architecture
+- Asks 2-4 questions max
+- Makes reasonable assumptions for non-critical decisions
 
 **Example:**
 ```
-Before designing the architecture, I need to clarify:
+A few quick questions before I design this:
 
-1. OAuth provider: Which OAuth providers? (Google, GitHub, custom?)
-2. User data: Store OAuth tokens or just user profile?
-3. Sessions: Integrate with existing session management?
+1. Which OAuth providers do you need? (Google, GitHub, both?)
+2. Should we use the existing session management or separate?
 
-Testing questions:
-4. Test coverage: What level of test coverage is expected?
-5. TDD: Should tests be written before or after implementation?
-6. Integration tests: Required in addition to unit tests?
+I'll assume unit tests only (no integration tests) unless you want otherwise.
 ```
 
 ### Phase 4: Architecture Design
 
-**Goal**: Design multiple implementation approaches with test strategies and milestones
+**Goal**: Design ONE good approach with milestones
 
 **What happens:**
-- Launches 2-3 `code-architect` agents with different focuses:
-  - **Minimal changes**: Smallest change, maximum reuse
-  - **Clean architecture**: Maintainability, elegant abstractions
-  - **Pragmatic balance**: Speed + quality
-- **NEW**: Each approach includes test strategy and milestone decomposition
-- Reviews all approaches and forms recommendation
-- Presents comparison with trade-offs
-- **Asks which approach you prefer**
-- **Asks about implementation mode** (Lightweight, Balanced, Thorough)
+- Launches `code-architect` agent focused on pragmatic approach
+- Designs solution that fits existing patterns
+- Breaks down into clear milestones
+- Quick brainstorm: "Does this make sense? Any concerns?"
 
 **Example output:**
 ```
-Approach 2: Clean Architecture
+Here's the approach:
 
 Components:
-- OAuthService: Handles OAuth flow
-- OAuthProvider: Provider abstraction
-- AuthMiddleware: Request authentication
-
-Test Strategy:
-- Unit tests: OAuthService with mocked providers
-- Integration tests: Full OAuth flow with test server
-- Mocking: Use nock for external OAuth endpoints
+- OAuthService: Handles OAuth flow (follows existing AuthService pattern)
+- OAuthProvider: Provider abstraction for Google/GitHub
+- AuthMiddleware: Hook into existing middleware chain
 
 Milestones:
-1. [S] Core types and interfaces
-2. [M] OAuthProvider abstraction
-3. [M] OAuthService implementation
-4. [S] AuthMiddleware integration
-5. [M] Tests and documentation
+1. OAuthProvider interface + Google implementation
+2. OAuthService with token handling
+3. AuthMiddleware integration
+4. Tests
 
-Which implementation mode?
-- Lightweight: Verify all, checkpoint at end only
-- Balanced (recommended): Verify all, mini-review medium+, checkpoint major
-- Thorough: Verify all, mini-review all, checkpoint every milestone
+This follows your existing auth patterns. Sound good?
 ```
 
-### Phase 4.5: Impact Analysis (Conditional)
+### Phase 4.5: Impact Analysis (When Needed)
 
-**Goal**: Understand blast radius before making changes
+**Goal**: Understand blast radius for risky changes
 
-**NEW**: This phase triggers automatically when changes are risky:
-- Modifying more than 5 existing files
-- Touching auth, payments, or user data
-- Changing API contracts or database schemas
+Triggers when touching auth, payments, APIs, or many existing files.
 
 **What happens:**
 - Launches `impact-analyzer` agent
-- Analyzes downstream dependencies
-- Assesses breaking change risk
-- Evaluates test coverage of affected paths
-- Presents findings for acknowledgment
+- Shows what depends on modified code
+- Assesses risk
+- Gets acknowledgment before proceeding
 
-**Example output:**
-```
-Impact Analysis:
+### Phase 5: Implementation
 
-Direct dependents of AuthService:
-- src/middleware/auth.ts (imports AuthService)
-- src/routes/user.ts (calls authenticate())
-- src/routes/admin.ts (calls requireRole())
-
-Risk Assessment: MEDIUM
-- 12 files depend on modified interfaces
-- 8/12 have test coverage
-- No breaking changes to public API
-
-Proceed with implementation?
-```
-
-### Phase 5: Iterative Implementation
-
-**Goal**: Build the feature incrementally with verification
-
-**NEW**: Instead of "big bang" implementation, builds in milestones:
+**Goal**: Build in milestones with verification
 
 **What happens:**
-- Presents milestones from architecture
-- For each milestone:
-  1. Implements the milestone code
-  2. **Launches `quick-verifier`** (type check, lint, targeted tests)
-  3. Mini-review (if Balanced/Thorough mode)
-  4. Architecture alignment check
-  5. User checkpoint (if configured)
-  6. Marks complete, proceeds to next
+- Implements each milestone
+- Runs `quick-verifier` after each (type check, lint, tests)
+- Fixes issues before moving on
+- No ceremony - just build, verify, continue
 
 **Example flow:**
 ```
-Milestone 2/5: OAuthProvider abstraction [M]
+Milestone 2/4: OAuthProvider abstraction
 
-Implementing...
 ✓ Created src/auth/OAuthProvider.ts
 ✓ Created src/auth/providers/GoogleProvider.ts
+✓ Verification: types pass, lint pass, tests pass
 
-Verifying...
-✓ Type check: PASS
-✓ Lint: PASS
-✓ Tests: 4/4 passing
-
-Mini-review findings:
-- No critical issues
-
-Proceed to Milestone 3?
+Moving to Milestone 3...
 ```
 
-### Phase 6: Quality Review & Verification
+### Phase 6: Quality Review
 
-**Goal**: Ensure code is simple, DRY, elegant, and verified
+**Goal**: Catch real issues, skip nitpicks
 
 **What happens:**
-1. **NEW**: Runs full test suite first
-   - Must pass before proceeding to review
-   - Fixes any failures
-2. Launches 3 `code-reviewer` agents:
-   - **Standard**: Simplicity, DRY, elegance
-   - **Security mode**: For auth/data handling code
-   - **Performance mode**: For database/algorithm code
-3. **NEW**: Launches `code-tester` for test quality review
-4. Consolidates all findings
-5. **Presents findings with test status**
-6. Asks what you want to do (fix now, fix later, proceed)
+1. Runs relevant tests
+2. Launches `code-reviewer` (with security/performance focus if needed)
+3. Fixes critical issues
+4. Notes minor issues without blocking
 
 **Example output:**
 ```
-Quality Review Results:
+Tests: 47 passing
 
-Test Status: ALL PASSING (47 tests)
+Review findings:
+- Missing error handling in OAuth callback (src/auth/oauth.ts:67) - fixing now
 
-Code Review Issues:
-High Priority:
-1. Missing error handling in OAuth callback (src/auth/oauth.ts:67)
-
-Medium Priority:
-1. Could simplify token refresh logic
-
-Test Quality Assessment:
-- Coverage: 85% (above 80% threshold)
-- Quality score: 4/5
-- Gap: No test for token expiry edge case
-
-What would you like to do?
+No other critical issues. Minor: could simplify token refresh logic later.
 ```
 
-### Phase 7: Summary & Documentation
+### Phase 7: Wrap Up
 
-**Goal**: Document what was accomplished
+**Goal**: Summarize and suggest next steps
 
 **What happens:**
-- Marks all todos complete
-- **NEW**: Suggests documentation updates:
-  - API docs (if new endpoints)
-  - README updates (if user-facing changes)
-  - Changelog entry
-- Summarizes:
-  - What was built
-  - Key decisions made
-  - **Tests written and coverage achieved**
-  - **Verification status**
-  - Files modified
-  - Suggested next steps
+- Brief summary of what was built
+- Files modified/created
+- Suggests documentation updates (only if clearly needed)
+- Mentions follow-up ideas
 
 **Example:**
 ```
-Feature Complete: OAuth Authentication
+Done! Built OAuth authentication with Google and GitHub support.
 
-What was built:
-- OAuth provider abstraction supporting Google and GitHub
-- OAuth routes and middleware
-- Token refresh and session integration
+Files: src/auth/OAuthProvider.ts (new), src/auth/AuthService.ts (modified),
+       src/routes/auth.ts (modified), __tests__/auth/*.test.ts (new)
 
-Tests:
-- 12 unit tests, 4 integration tests
-- Coverage: 85% (target: 80%)
-- All tests passing
+Tests passing. You'll want to add OAuth setup instructions to your README.
 
-Files modified:
-- src/auth/OAuthProvider.ts (new)
-- src/auth/AuthService.ts (modified)
-- src/routes/auth.ts (modified)
-- __tests__/auth/*.test.ts (new)
-
-Suggested documentation:
-- Add OAuth setup instructions to README
-- Document new /auth/oauth/* endpoints
-
-Suggested next steps:
-- Add more OAuth providers (Microsoft, Apple)
-- Set up OAuth app credentials in production
+Follow-up ideas: Add Microsoft/Apple providers, set up prod credentials.
 ```
 
 ## Agents
 
 ### `code-explorer`
-
-**Purpose**: Deeply analyzes existing codebase features by tracing execution paths
-
-**Focus areas:**
-- Entry points and call chains
-- Data flow and transformations
-- Architecture layers and patterns
-- Dependencies and integrations
-
-**When triggered:**
-- Automatically in Phase 2
-- Can be invoked manually when exploring code
+Analyzes existing codebase features by tracing execution paths. Finds patterns, architecture layers, and dependencies. Used in Phase 2.
 
 ### `code-architect`
-
-**Purpose**: Designs feature architectures with test strategies and milestones
-
-**Focus areas:**
-- Codebase pattern analysis
-- Architecture decisions with rationale
-- Component design and data flow
-- **Test strategy for each component**
-- **Milestone decomposition**
-
-**When triggered:**
-- Automatically in Phase 4
-- Can be invoked manually for architecture design
+Designs ONE good architecture with milestones and test strategy. Follows existing patterns. Used in Phase 4.
 
 ### `code-reviewer`
+Reviews code for real bugs and quality issues. Confidence-filtered to skip nitpicks. Can focus on security or performance when needed. Used in Phase 6.
 
-**Purpose**: Reviews code for bugs, quality, and project conventions
+### `code-tester`
+Discovers test patterns, plans tests, runs verification. Used in Phase 2 (discovery) and Phase 6 (quality review).
 
-**Focus areas:**
-- Project guideline compliance
-- Bug detection with confidence scoring
-- Code quality issues
+### `quick-verifier`
+Fast verification: type check, lint, targeted tests. Runs after each milestone. Uses Haiku for speed.
 
-**Review modes:**
-- **Standard**: Full review of all responsibilities
-- **Security**: OWASP Top 10, input validation, secrets, auth
-- **Performance**: N+1 queries, complexity, memory, caching
+### `impact-analyzer`
+Analyzes blast radius of risky changes. Shows dependencies and breaking change risk. Used conditionally in Phase 4.5.
 
-**When triggered:**
-- Automatically in Phase 5 (mini-reviews) and Phase 6
-- Can be invoked manually after writing code
+## Default Behavior
 
-### `code-tester` (NEW)
+The plugin defaults to **lightweight mode**: verify each milestone (types, lint, tests), checkpoint only at the end. This keeps momentum while catching issues early.
 
-**Purpose**: Analyzes test patterns, plans tests, runs verification, reviews test quality
+If you want more oversight (mini-reviews at each step, user checkpoints), just ask.
 
-**Modes:**
-- **Discovery**: Find test frameworks, patterns, conventions
-- **Planning**: Design test cases from requirements
-- **Execution**: Run tests, analyze results
-- **Quality Review**: Assess coverage and test quality
+## Usage
 
-**When triggered:**
-- Automatically in Phase 2 (discovery)
-- Automatically in Phase 6 (quality review)
-- Can be invoked manually for test planning
-
-### `quick-verifier` (NEW)
-
-**Purpose**: Fast automated verification after each milestone
-
-**Checks:**
-- Type checking (tsc, mypy, go build, etc.)
-- Linting (eslint, ruff, etc.)
-- Targeted tests (tests related to changed files)
-- Import verification
-
-**When triggered:**
-- Automatically after each milestone in Phase 5
-- Uses fast Haiku model for speed
-
-### `impact-analyzer` (NEW)
-
-**Purpose**: Analyzes blast radius of proposed changes
-
-**Analysis:**
-- Dependency graph (what depends on modified code)
-- Consumer list (files importing modified modules)
-- Breaking change risk assessment
-- Test coverage of affected paths
-
-**When triggered:**
-- Conditionally in Phase 4.5 when changes are risky
-- Can be invoked manually before major refactoring
-
-## Implementation Modes
-
-When you reach Phase 4, you'll be asked to choose an implementation mode:
-
-| Mode | Verification | Mini-Reviews | User Checkpoints |
-|------|--------------|--------------|------------------|
-| **Lightweight** | Every milestone | None | Final only |
-| **Balanced** (default) | Every milestone | Medium+ milestones | Major milestones |
-| **Thorough** | Every milestone | All milestones | Every milestone |
-
-Choose based on:
-- **Lightweight**: Trusted changes, tight deadlines, small features
-- **Balanced**: Most features, good balance of speed and safety
-- **Thorough**: Critical features, unfamiliar codebase, learning
-
-## Usage Patterns
-
-### Full workflow (recommended for new features):
 ```bash
 /feature-dev Add rate limiting to API endpoints
 ```
 
-Let the workflow guide you through all 7 phases.
+The workflow guides you through discovery → exploration → design → implementation → review.
 
-### Manual agent invocation:
+You can also invoke agents directly:
+- "Launch code-explorer to trace how authentication works"
+- "Launch code-architect to design the caching layer"
+- "Launch code-reviewer to check my changes"
 
-**Explore a feature:**
-```
-"Launch code-explorer to trace how authentication works"
-```
+## Tips
 
-**Design architecture:**
-```
-"Launch code-architect to design the caching layer"
-```
+1. **Share your ideas early** - The plugin brainstorms with you, so speak up
+2. **Don't over-answer questions** - Brief answers are fine; "whatever you think" is okay
+3. **Trust the defaults** - Lightweight mode works for most features
+4. **Course-correct during implementation** - If something doesn't feel right, say so
 
-**Review code:**
-```
-"Launch code-reviewer with security mode to check auth changes"
-```
+## When to Use
 
-**Discover test patterns:**
-```
-"Launch code-tester in discovery mode to understand testing conventions"
-```
+**Use for:** Features that need some thought - multiple files, architectural decisions, integrations.
 
-**Analyze impact:**
-```
-"Launch impact-analyzer to assess the blast radius of refactoring UserService"
-```
-
-## Best Practices
-
-1. **Use the full workflow for complex features**: The 7 phases ensure thorough planning and verification
-2. **Answer clarifying questions thoughtfully**: Phase 3 prevents future confusion
-3. **Choose architecture deliberately**: Phase 4 gives you options with test strategies
-4. **Trust the verification**: Quick-verifier catches issues early
-5. **Don't skip impact analysis**: Phase 4.5 prevents unexpected breakages
-6. **Review test quality**: Good tests are as important as good code
-
-## When to Use This Plugin
-
-**Use for:**
-- New features that touch multiple files
-- Features requiring architectural decisions
-- Complex integrations with existing code
-- Features where requirements are unclear
-- Features requiring test coverage
-
-**Don't use for:**
-- Single-line bug fixes
-- Trivial changes
-- Well-defined, simple tasks
-- Urgent hotfixes
+**Don't use for:** Bug fixes, trivial changes, hotfixes. Just do those directly.
 
 ## Requirements
 
 - Claude Code installed
-- Git repository (for code review and verification)
-- Project with existing codebase (workflow assumes existing code to learn from)
-- Test framework configured (for full testing integration)
+- Git repository
+- Existing codebase (the workflow learns from existing patterns)
 
 ## Troubleshooting
 
-### Agents take too long
+**Agents slow?** Normal for large codebases. They're thorough.
 
-**Issue**: Code exploration or architecture agents are slow
+**Can't find test runner?** Make sure test config exists (jest.config.js, etc.).
 
-**Solution**:
-- This is normal for large codebases
-- Agents run in parallel when possible
-- The thoroughness pays off in better understanding
-
-### Quick-verifier can't find test runner
-
-**Issue**: Verification phase can't run tests
-
-**Solution**:
-- Ensure test configuration exists (jest.config.js, pytest.ini, etc.)
-- Check that test command works manually
-- Agent will skip tests if no runner found
-
-### Impact analysis triggers too often
-
-**Issue**: Phase 4.5 runs when not needed
-
-**Solution**:
-- The triggers are intentionally conservative
-- You can acknowledge and proceed quickly
-- Awareness of impact is valuable even for smaller changes
-
-### Too many clarifying questions
-
-**Issue**: Phase 3 asks too many questions
-
-**Solution**:
-- Be more specific in your initial feature request
-- Provide context about constraints upfront
-- Say "whatever you think is best" if truly no preference
-
-## Tips
-
-- **Be specific in your feature request**: More detail = fewer clarifying questions
-- **Trust the process**: Each phase builds on the previous one
-- **Choose Balanced mode**: Good default for most features
-- **Review agent outputs**: Agents provide valuable insights about your codebase
-- **Don't skip verification**: Early catches save debugging time later
-- **Use for learning**: The exploration phase teaches you about your own codebase
+**Too many questions?** Say "whatever you think" or be more specific upfront.
 
 ## Author
 
@@ -532,4 +268,4 @@ Sid Bidasaria (sbidasaria@anthropic.com)
 
 ## Version
 
-2.0.0
+2.1.0 - Pragmatic edition

@@ -5,33 +5,38 @@ argument-hint: Optional feature description
 
 # Feature Development
 
-You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all underspecified details, design elegant architectures with test strategies, then implement incrementally with verification.
+You are helping a developer implement a new feature. Follow a pragmatic approach: understand just enough, brainstorm briefly, design one good approach, then build iteratively.
 
 ## Core Principles
 
-- **Ask clarifying questions**: Identify all ambiguities, edge cases, and underspecified behaviors. Ask specific, concrete questions rather than making assumptions. Wait for user answers before proceeding with implementation. Ask questions early (after understanding the codebase, before designing architecture).
-- **Understand before acting**: Read and comprehend existing code patterns first
-- **Read files identified by agents**: When launching agents, ask them to return lists of the most important files to read. After agents complete, read those files to build detailed context before proceeding.
-- **Simple and elegant**: Prioritize readable, maintainable, architecturally sound code
-- **Test-aware development**: Integrate testing throughout the workflow
-- **Incremental implementation**: Build in milestones with verification, not "big bang"
-- **Use TodoWrite**: Track all progress throughout
+- **Pragmatic over perfect**: Ship working code, then iterate. Don't over-plan.
+- **Brainstorm collaboratively**: Share ideas early, get user input, refine together.
+- **Ask only critical questions**: Focus on blockers, not exhaustive edge cases. When in doubt, make a reasonable choice and move on.
+- **Understand before acting**: Read relevant code patterns, but don't boil the ocean.
+- **One good approach**: Design a single solid architecture. Don't present menus of options.
+- **Build and adjust**: Start implementing, course-correct as needed.
+- **Read files identified by agents**: After agents complete, read key files they identify.
+- **Use TodoWrite**: Track progress throughout
 
 ---
 
-## Phase 1: Discovery
+## Phase 1: Discovery & Brainstorm
 
-**Goal**: Understand what needs to be built
+**Goal**: Understand what needs to be built and brainstorm ideas together
 
 Initial request: $ARGUMENTS
 
 **Actions**:
-1. Create todo list with all phases
-2. If feature unclear, ask user for:
+1. Create todo list with phases
+2. Share your initial take on the feature - what you think it involves, potential approaches
+3. **Brainstorm briefly with user**:
+   - "Here's what I'm thinking... what do you think?"
+   - Offer 1-2 quick ideas if the approach isn't obvious
+   - Ask if they have ideas or preferences
+4. If anything is truly unclear, ask (keep it brief):
    - What problem are they solving?
-   - What should the feature do?
-   - Any constraints or requirements?
-3. Summarize understanding and confirm with user
+   - Any hard constraints?
+5. Agree on direction and move on - don't over-discuss
 
 ---
 
@@ -58,43 +63,46 @@ Initial request: $ARGUMENTS
 
 ---
 
-## Phase 3: Clarifying Questions
+## Phase 3: Quick Clarifications
 
-**Goal**: Fill in gaps and resolve all ambiguities before designing
+**Goal**: Resolve only critical blockers before designing
 
-**CRITICAL**: This is one of the most important phases. DO NOT SKIP.
+**Keep this phase SHORT**. Don't ask about every edge case.
 
 **Actions**:
-1. Review the codebase findings and original feature request
-2. Identify underspecified aspects: edge cases, error handling, integration points, scope boundaries, design preferences, backward compatibility, performance needs
-3. **Include testing-related questions**:
-   - What level of test coverage is expected for this feature?
-   - Should tests be written first (TDD) or after implementation?
-   - Are integration tests required in addition to unit tests?
-   - Any specific scenarios or edge cases that must be tested?
-4. **Present all questions to the user in a clear, organized list**
-5. **Wait for answers before proceeding to architecture design**
+1. Review codebase findings and feature request
+2. Identify only **critical** unknowns that would change the architecture:
+   - Major scope decisions (e.g., "should this support X or just Y?")
+   - Integration choices (e.g., "use existing auth system or new one?")
+   - Hard constraints you discovered
+3. Ask 2-4 questions max. Group them in one message.
+4. For non-critical decisions, **make a reasonable choice and state it**:
+   - "I'll assume we want unit tests but not integration tests - let me know if that's wrong"
+   - "I'll follow the existing error handling pattern unless you want something different"
 
-If the user says "whatever you think is best", provide your recommendation and get explicit confirmation.
+If the user says "whatever you think is best", just proceed with your judgment.
 
 ---
 
 ## Phase 4: Architecture Design
 
-**Goal**: Design multiple implementation approaches with test strategies and milestones
+**Goal**: Design ONE good approach with milestones
 
 **Actions**:
-1. Launch 2-3 code-architect agents in parallel with different focuses: minimal changes (smallest change, maximum reuse), clean architecture (maintainability, elegant abstractions), or pragmatic balance (speed + quality)
-   - Each agent MUST include:
-     - **Test strategy**: How to test the components
-     - **Milestone decomposition**: Breakdown into verifiable milestones
-2. Review all approaches and form your opinion on which fits best for this specific task (consider: small fix vs large feature, urgency, complexity, team context)
-3. Present to user: brief summary of each approach, trade-offs comparison, **your recommendation with reasoning**, concrete implementation differences
-4. **Ask user which approach they prefer**
-5. **Ask user about implementation mode preference**:
-   - **Lightweight**: Verify every milestone, no mini-reviews, final checkpoint only
-   - **Balanced** (default): Verify all, mini-review medium+ milestones, checkpoint major milestones
-   - **Thorough**: Verify all, mini-review all, checkpoint every milestone
+1. Launch 1 code-architect agent focused on a **pragmatic approach**:
+   - Balance simplicity with maintainability
+   - Reuse existing patterns where sensible
+   - Include test strategy and milestone breakdown
+2. Review the architecture and refine if needed
+3. Present to user:
+   - The approach (not multiple options)
+   - Key components and why
+   - Milestones for implementation
+   - Brief rationale for major decisions
+4. **Quick brainstorm**: "Does this approach make sense? Any concerns or ideas?"
+5. Get thumbs up and proceed - don't belabor the discussion
+
+**Implementation runs in Lightweight mode by default**: verify each milestone, checkpoint only at the end. If user wants more oversight, they can ask.
 
 ---
 
@@ -129,116 +137,84 @@ If the user says "whatever you think is best", provide your recommendation and g
 
 ---
 
-## Phase 5: Iterative Implementation
+## Phase 5: Implementation
 
-**Goal**: Build the feature incrementally with verification at each milestone
+**Goal**: Build the feature in milestones
 
-**DO NOT START WITHOUT USER APPROVAL**
+**Get user approval before starting, then move quickly.**
 
-### 5.1: Milestone Planning
+### 5.1: Setup
 
-1. Present the milestones from the chosen architecture
-2. Confirm checkpoint preferences from Phase 4
-3. Create todo entries for each milestone
+1. Briefly confirm milestones from architecture
+2. Create todo entries
+3. Start building
 
-### 5.2-N: Per-Milestone Cycle
+### 5.2: Per-Milestone Cycle
 
-For each milestone, execute this cycle:
+For each milestone:
 
 **A. Implement**
-- Read all relevant files for this milestone
-- Implement following chosen architecture
-- Follow codebase conventions strictly
-- Write clean code with tests (if TDD was chosen, tests first)
-- Update todos as you progress
+- Read relevant files
+- Implement following architecture and codebase conventions
+- Write tests as you go (unless codebase doesn't have tests)
+- Update todos
 
 **B. Quick Verify**
-- Launch quick-verifier agent:
-  - "Verify the changes from milestone [N]: [list changed files]. Run type checking, linting, and targeted tests."
-- If verification fails: Fix issues before proceeding
-- If verification passes: Continue
+- Launch quick-verifier: type check, lint, targeted tests
+- Fix any failures before moving on
 
-**C. Mini-Review** (for Medium+ milestones, if Balanced or Thorough mode)
-- Launch 1 code-reviewer agent focused on the milestone's changes:
-  - "Review the changes in [files] for this milestone. Focus on [relevant concerns]."
-- Address any critical issues before proceeding
+**C. Continue**
+- Mark milestone complete
+- Move to next milestone
+- No mini-reviews or checkpoints unless user asked for them
 
-**D. Architecture Alignment Check**
-- Verify implementation matches the chosen architecture
-- If deviations were necessary, document why
+### 5.3: Integration Check
 
-**E. User Checkpoint** (if configured for this milestone)
-- Present milestone completion to user
-- Show what was built and verified
-- Get approval before proceeding to next milestone
-
-**F. Mark Complete**
-- Mark milestone todo as complete
-- Proceed to next milestone
-
-### Integration Verification
-
-After all milestones complete:
-1. Run full test suite related to the feature
-2. Verify all components integrate correctly
-3. If issues found, create targeted fixes
+After all milestones:
+1. Run relevant tests
+2. Quick sanity check that components integrate
+3. Fix any issues
 
 ---
 
 ## Phase 6: Quality Review & Verification
 
-**Goal**: Ensure code is simple, DRY, elegant, functionally correct, and verified
+**Goal**: Ensure code works and catch obvious issues
 
 **Actions**:
 
 ### 6.1: Test Execution
-1. **Run the full test suite** (or feature-relevant subset for large codebases)
-2. If tests fail:
-   - Analyze failures
-   - Fix issues
-   - Re-run tests
-   - **DO NOT proceed to code review until tests pass**
+1. Run relevant tests (not necessarily the full suite)
+2. If tests fail: fix and re-run
 3. Report test status
 
 ### 6.2: Code Review
-1. Launch 3 code-reviewer agents in parallel with different focuses:
-   - **Standard**: Simplicity, DRY, elegance, readability
-   - **Security mode**: If the feature handles auth, user data, payments, or API endpoints
-   - **Performance mode**: If the feature involves database queries, high-traffic paths, or algorithms
-2. Consolidate findings and identify highest severity issues that you recommend fixing
+1. Launch 1 code-reviewer agent with appropriate focus:
+   - Standard review for most features
+   - Add security focus if touching auth/payments/user data
+   - Add performance focus if touching DB queries or hot paths
+2. Focus on **high-confidence issues only** (don't nitpick)
 
-### 6.3: Test Quality Review
-1. Launch code-tester agent in quality review mode:
-   - "Review the quality of tests written for [feature]. Assess coverage, test clarity, assertion quality, and identify any gaps."
-2. Include test quality findings in the review
-
-### 6.4: Present Findings
-1. Present consolidated findings to user:
-   - **Test status**: All passing / failures addressed
-   - **Code review issues**: By severity
-   - **Test quality assessment**: Coverage and quality scores
-2. **Ask what they want to do** (fix now, fix later, or proceed as-is)
-3. Address issues based on user decision
+### 6.3: Present Findings
+1. Brief summary:
+   - Tests: passing/failing
+   - Review: critical issues (if any)
+2. Fix critical issues
+3. For minor issues: mention them, but don't block on them
 
 ---
 
-## Phase 7: Summary & Documentation
+## Phase 7: Wrap Up
 
-**Goal**: Document what was accomplished and suggest follow-up
+**Goal**: Summarize and suggest next steps
 
 **Actions**:
-1. Mark all todos complete
-2. **Suggest documentation updates** (if applicable):
-   - API documentation (if new endpoints were added)
-   - README updates (if user-facing behavior changed)
-   - Changelog entry for the feature
-   - Present documentation suggestions for user approval
-3. Summarize:
+1. Mark todos complete
+2. Brief summary:
    - What was built
-   - Key decisions made
-   - **Tests written and coverage achieved**
-   - **Verification status** (all tests passing, review complete)
    - Files modified/created
-   - Suggested next steps
+   - Tests passing
+3. Suggest documentation updates only if clearly needed (new API endpoints, changed user behavior)
+4. Mention any follow-up ideas that came up during implementation
 
 ---
