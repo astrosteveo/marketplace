@@ -29,7 +29,6 @@ Plugin development with agent addition, trigger agent-creator.
 </commentary>
 </example>
 
-model: sonnet
 color: magenta
 tools: ["Write", "Read"]
 ---

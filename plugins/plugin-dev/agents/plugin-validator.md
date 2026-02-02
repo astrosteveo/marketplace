@@ -31,7 +31,6 @@ Manifest modified, validate to ensure correctness.
 assistant: "I'll use the plugin-validator agent to check the manifest."
 </example>
 
-model: inherit
 color: yellow
 tools: ["Read", "Grep", "Glob", "Bash"]
 ---

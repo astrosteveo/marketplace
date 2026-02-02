@@ -2,7 +2,6 @@
 name: code-tester
 description: Analyzes test patterns, plans test cases, executes tests, and reviews test quality. Use when exploring test infrastructure, planning tests for features, running verification, or reviewing test coverage.
 tools: Glob, Grep, LS, Read, NotebookRead, Bash, TodoWrite
-model: sonnet
 color: yellow
 ---
 

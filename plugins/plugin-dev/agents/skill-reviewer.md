@@ -30,7 +30,6 @@ Skill description modified, review for triggering effectiveness.
 </commentary>
 </example>
 
-model: inherit
 color: cyan
 tools: ["Read", "Grep", "Glob"]
 ---

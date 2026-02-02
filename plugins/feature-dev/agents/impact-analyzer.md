@@ -2,7 +2,6 @@
 name: impact-analyzer
 description: Analyzes blast radius and downstream effects of proposed changes before implementation. Use to understand what might break when modifying existing code, APIs, or database schemas.
 tools: Glob, Grep, LS, Read, NotebookRead
-model: sonnet
 color: orange
 ---
 
