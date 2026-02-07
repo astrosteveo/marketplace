@@ -1,5 +1,4 @@
 ---
-name: prompt-improvement
 description: Techniques for analyzing and improving prompts. Use when asked to improve, refine, strengthen, or optimize a prompt.
 ---
 
