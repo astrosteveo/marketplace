@@ -93,8 +93,15 @@ Check that all imports in changed files resolve:
 
 ### Overall Status: [PASS] / [NEEDS_ATTENTION]
 
+### Commit Metadata
+- files_changed: [list of files that were verified]
+- verification_summary: "type:PASS lint:PASS tests:X/Y"
+- ready_to_commit: [true if PASS, false if NEEDS_ATTENTION]
+
 [If NEEDS_ATTENTION, summarize what needs fixing before proceeding]
 ```
+
+The "Commit Metadata" section is used by the auto-committer agent if auto-commit is enabled.
 
 ## Guidelines
 

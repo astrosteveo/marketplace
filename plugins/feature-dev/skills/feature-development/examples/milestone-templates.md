@@ -31,6 +31,8 @@ Templates and examples for structuring implementation milestones.
 **Checkpoint**: [Yes/No - does user approve before next milestone?]
 
 **Estimated complexity**: [Small/Medium/Large]
+
+**Auto-commit**: [Default/Skip/Ask - override project auto-commit setting for this milestone]
 ```
 
 ---

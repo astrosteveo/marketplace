@@ -491,3 +491,159 @@ Do NOT suggest documentation for:
 - [ ] README: [Specific update needed]
 - [ ] CHANGELOG: [Entry text]
 ```
+
+---
+
+## Auto-Commit - Extended Guidance
+
+### When Auto-Commit Triggers
+
+Auto-commit triggers when ALL conditions are met:
+- Milestone implementation complete
+- Quick-verifier passes (no blocking errors)
+- Mini-review passes (no critical issues, if applicable)
+- Architecture alignment confirmed
+- Auto-commit not disabled in settings
+
+### Commit Message Format
+
+Follow conventional commits format:
+```
+<type>(<scope>): <milestone-name>
+
+- <deliverable 1>
+- <deliverable 2>
+
+Milestone: N/Total
+Verification: type:PASS lint:PASS tests:X/Y
+Files: N changed
+```
+
+**Type determination**:
+- `feat`: New functionality (default)
+- `fix`: Bug fixes, patches
+- `refactor`: Code restructuring without behavior change
+- `test`: Test additions/changes only
+- `docs`: Documentation only
+- `chore`: Build/config changes
+
+**Scope extraction**:
+- Use common directory from changed files (e.g., `auth`, `api`, `components`)
+- Or omit if files span multiple unrelated areas
+
+### Handling Pre-Commit Hook Failures
+
+| Hook Output | Action |
+|-------------|--------|
+| Formatting errors (prettier, black) | Auto-fix and retry |
+| Lint errors with --fix available | Auto-fix and retry |
+| Type errors | Present to user, cannot auto-fix |
+| Test failures | Should not happen (verification passed) |
+| Custom hook failures | Present output, ask user |
+
+**Retry logic**:
+1. First failure: attempt auto-fix if applicable
+2. Re-stage files after fix
+3. Retry commit (max 2 retries total)
+4. If still failing: present error and options to user
+
+### Commit Scope
+
+Only commit files changed in current milestone:
+- Files created during milestone
+- Files modified during milestone
+- Related test files
+- Do NOT commit unrelated workspace changes
+
+If unrelated changes are detected:
+1. Warn user about unstaged changes
+2. Offer to stash unrelated changes
+3. Commit only milestone files
+
+### User Checkpoint Content (with Auto-Commit)
+
+```
+## Milestone [N] Complete: [Name]
+
+### What was built
+- [deliverable 1]
+- [deliverable 2]
+
+### Files changed
+- [file1.ts]: [description]
+- [file2.ts]: [description]
+
+### Verification status
+- Type check: Pass
+- Lint: Pass
+- Tests: [X] passing
+
+### Commit
+- Status: Committed
+- Hash: abc1234
+- Message: "feat(auth): implement OAuth provider abstraction"
+
+### Ready for next milestone?
+```
+
+### Opting Out
+
+**Per-project** (in `.claude/feature-dev.local.md`):
+```yaml
+auto_commit: false
+```
+
+**Per-session** (during Phase 3):
+- Select "Auto-commit disabled" when asked about preferences
+
+**Per-milestone** (at checkpoint):
+- User can skip commit for specific milestone if needed
+
+---
+
+## State Persistence - Extended Guidance
+
+### Save Points
+
+State is saved at specific transition points:
+
+| Phase Complete | Fields Updated |
+|----------------|----------------|
+| Phase 1 | `current_phase: "clarifying"`, discovery summary in body |
+| Phase 2 | `current_phase: "architecture"`, Q&A pairs in body |
+| Phase 3 | `current_phase`, `chosen_approach`, `milestones`, `auto_commit` |
+| Each milestone | `current_milestone`, `milestones_completed`, files modified |
+| Phase 5 | `current_phase: "summary"`, review findings |
+| Phase 6 | `phase_status: "completed"`, final summary |
+
+### Resume Scenarios
+
+**Same feature, new session**:
+- Detect in-progress feature
+- Show progress summary
+- Offer to continue from current phase/milestone
+
+**New feature with existing state**:
+- Detect existing feature
+- Offer to archive and start fresh
+- Create timestamped archive: `feature-dev.local.md.archived-YYYYMMDD-HHMMSS`
+
+**Completed feature**:
+- Detect completed feature
+- Auto-archive on new `/feature-dev` invocation
+- Start fresh workflow
+
+### State File Location
+
+```
+project-root/
+└── .claude/
+    └── feature-dev.local.md        # Active feature
+    └── feature-dev.local.md.archived-*  # Previous features
+```
+
+Add to `.gitignore`:
+```
+.claude/feature-dev.local.md
+.claude/feature-dev.local.md.archived-*
+```

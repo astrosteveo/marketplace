@@ -16,6 +16,45 @@ Collaborate with the user to implement features through a systematic approach: u
 - **Test-aware development**: Integrate testing throughout the workflow
 - **Incremental implementation**: Build in milestones with verification, not "big bang"
 - **Use TodoWrite**: Track all progress throughout
+- **Persistent memory**: Save progress to state file for cross-session resumption
+
+---
+
+## State Management (Resume Support)
+
+**At workflow start, check for existing state:**
+
+1. Check if `.claude/feature-dev.local.md` exists
+2. If exists, read and present resume options:
+
+   ```
+   Found existing feature work: "[feature_name]"
+   - Current phase: [current_phase]
+   - Last updated: [relative_time]
+   - Milestones: [current]/[total] complete
+
+   Options:
+   1. **Resume** - Continue from [current_phase]
+   2. **New Feature** - Archive current and start fresh
+   3. **Review State** - Show full state before deciding
+   ```
+
+3. If "New Feature" chosen:
+   - Rename existing file to `.claude/feature-dev.local.md.archived-[timestamp]`
+   - Start fresh workflow
+
+4. If "Resume" chosen:
+   - Load context from state file (discovery findings, Q&A, architecture decision, milestones)
+   - Skip to current phase with restored context
+   - Present phase-specific resume prompt
+
+**State Persistence**:
+- After each phase transition, save progress to `.claude/feature-dev.local.md`
+- Update YAML frontmatter with phase, timestamp, progress
+- Append findings to markdown body
+- See `references/state-management.md` for details and `examples/state-file-template.md` for format
+
+---
 
 ## Workflow Overview
 
@@ -63,6 +102,10 @@ The feature development workflow consists of 6 phases:
 
 For detailed agent prompts by feature type, see `references/agent-prompts.md`.
 
+**Save State**: Update `.claude/feature-dev.local.md`:
+- Set `current_phase: "clarifying"`, `phase_status: "pending"`
+- Add discovery summary to markdown body (similar features, patterns, testing conventions, key files)
+
 ---
 
 ## Phase 2: Clarifying Questions
@@ -81,6 +124,10 @@ For detailed agent prompts by feature type, see `references/agent-prompts.md`.
 If user says "whatever you think is best", provide recommendation and get explicit confirmation.
 
 For question templates organized by category, see `examples/clarifying-questions.md`.
+
+**Save State**: Update `.claude/feature-dev.local.md`:
+- Set `current_phase: "architecture"`, `phase_status: "pending"`
+- Record all Q&A pairs in markdown body
 
 ---
 
@@ -107,7 +154,18 @@ For question templates organized by category, see `examples/clarifying-questions
    - **Balanced** (default): Verify all, mini-review medium+ milestones, checkpoint major milestones. *Best for: standard features, moderate complexity*
    - **Thorough**: Verify all, mini-review all, checkpoint every milestone. *Best for: critical features, security-sensitive, unfamiliar codebase*
 
+6. Ask about auto-commit preferences:
+   - **Auto-commit enabled** (default): Automatically commit after each verified milestone
+   - **Auto-commit disabled**: No automatic commits, user handles git manually
+   - **Confirm each**: Prompt for confirmation before each commit
+
 For milestone structure templates, see `examples/milestone-templates.md`.
+
+**Save State**: Update `.claude/feature-dev.local.md`:
+- Set `current_phase: "implementation"` (or `"impact"` if triggered)
+- Set `chosen_approach`, `approach_rationale`, `implementation_mode`
+- Set `auto_commit`, `require_confirmation` based on user choice
+- Set `total_milestones` and record full milestone details in body
 
 ---
 
@@ -171,12 +229,26 @@ For each milestone:
 - Verify implementation matches chosen architecture
 - Document any necessary deviations
 
-**E. User Checkpoint** (if configured)
-- Present milestone completion
+**E. Auto-Commit** (if enabled)
+- Check auto-commit settings from state file
+- If enabled and verification passed:
+  - Launch **auto-committer** agent with milestone metadata (name, files, verification status)
+  - Agent generates conventional commit message and executes commit
+  - If commit fails (pre-commit hook): offer to fix, retry, or skip
+  - If commit succeeds: note commit hash for checkpoint summary
+- If disabled or user opted out: skip, proceed to checkpoint
+
+**F. User Checkpoint** (if configured)
+- Present milestone completion including commit status
 - Get approval before next milestone
 
-**F. Mark Complete**
+**G. Mark Complete**
 - Update todo status
+- **Save State**: Update `.claude/feature-dev.local.md`:
+  - Add milestone to `milestones_completed` array
+  - Increment `current_milestone`
+  - Update files modified list in body
+  - Log any key decisions made during milestone
 - Proceed to next milestone
 
 ### Integration Verification
@@ -207,6 +279,10 @@ Launch **code-tester** agent in quality review mode
 2. Ask what user wants to do (fix now, fix later, proceed as-is)
 3. Address issues based on user decision
 
+**Save State**: Update `.claude/feature-dev.local.md`:
+- Set `current_phase: "summary"`, `phase_status: "pending"`
+- Record review findings and resolutions in body
+
 ---
 
 ## Phase 6: Summary & Documentation
@@ -221,6 +297,11 @@ Launch **code-tester** agent in quality review mode
    - Changelog entry
 3. Summarize: what was built, key decisions, tests written, verification status, files modified, suggested next steps
 
+**Save State**: Update `.claude/feature-dev.local.md`:
+- Set `current_phase: "summary"`, `phase_status: "completed"`
+- Record final summary in body
+- Feature is now complete - state file will be archived on next `/feature-dev` invocation
+
 ---
 
 ## Additional Resources
@@ -228,7 +309,9 @@ Launch **code-tester** agent in quality review mode
 ### Reference Files
 - **`references/agent-prompts.md`** - Detailed agent prompts by feature type
 - **`references/phase-details.md`** - Extended guidance for each phase
+- **`references/state-management.md`** - Persistent memory and resume support
 
 ### Example Files
 - **`examples/clarifying-questions.md`** - Question templates by category
 - **`examples/milestone-templates.md`** - Milestone structure and examples
+- **`examples/state-file-template.md`** - Template for state file format

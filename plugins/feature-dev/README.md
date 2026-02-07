@@ -397,6 +397,134 @@ Suggested next steps:
 - Conditionally in Phase 4.5 when changes are risky
 - Can be invoked manually before major refactoring
 
+### `auto-committer` (NEW)
+
+**Purpose**: Executes git commits for completed milestones
+
+**Responsibilities:**
+- Generate conventional commit messages from milestone metadata
+- Stage only milestone-specific files
+- Handle pre-commit hook failures gracefully
+- Report commit success/failure
+
+**Features:**
+- Auto-fixes formatting/lint issues when possible
+- Retries up to 2 times on hook failure
+- Never commits unrelated changes
+- Atomic commits (one per milestone)
+
+**When triggered:**
+- Automatically after successful verification (if auto-commit enabled)
+- Uses fast Haiku model for efficiency
+
+## Session Persistence (Resume Support)
+
+The Feature Development Plugin now supports **resuming work across sessions**. Your progress is automatically saved to `.claude/feature-dev.local.md`.
+
+### How It Works
+
+1. **Automatic State Saving**: After each phase transition and milestone completion, progress is saved
+2. **Resume Detection**: When you run `/feature-dev`, it checks for existing work
+3. **Context Restoration**: Resume from where you left off with full context
+
+### Resume Options
+
+When existing state is detected:
+```
+Found existing feature work: "OAuth Authentication"
+- Current phase: Implementation (milestone 3/5)
+- Last updated: 2 hours ago
+
+Options:
+1. **Resume** - Continue from implementation
+2. **New Feature** - Archive current and start fresh
+3. **Review State** - Show full state before deciding
+```
+
+### What Gets Persisted
+
+- Current phase and milestone progress
+- Discovery findings (similar features, patterns, testing conventions)
+- Clarifying questions and answers
+- Architecture decision and rationale
+- Milestone completion status
+- Files modified
+
+### State File Location
+
+```
+project-root/
+└── .claude/
+    └── feature-dev.local.md        # Active feature state
+    └── feature-dev.local.md.archived-*  # Previous features
+```
+
+Add to your `.gitignore`:
+```
+.claude/feature-dev.local.md
+.claude/feature-dev.local.md.archived-*
+```
+
+---
+
+## Auto-Commit Per Milestone
+
+The plugin can **automatically commit** after each milestone passes verification.
+
+### Configuration
+
+During Phase 4 (Architecture Design), you'll be asked about auto-commit preferences:
+- **Auto-commit enabled** (default): Commit after each verified milestone
+- **Auto-commit disabled**: No automatic commits
+- **Confirm each**: Prompt for confirmation before each commit
+
+### Commit Format
+
+Commits use conventional commit format:
+```
+feat(auth): OAuth Provider Abstraction
+
+- Created OAuthProvider base class
+- Added GoogleProvider implementation
+- Integrated with auth middleware
+
+Milestone: 2/5
+Verification: type:PASS lint:PASS tests:4/4
+Files: 3 changed
+```
+
+### When Commits Trigger
+
+Auto-commit happens when ALL of:
+- Milestone implementation complete
+- Quick-verifier passes
+- Mini-review passes (if applicable)
+- Architecture alignment confirmed
+- Auto-commit is enabled
+
+### Error Handling
+
+If a pre-commit hook fails:
+1. Auto-fix attempted (formatting, lint errors)
+2. Retry up to 2 times
+3. If still failing, present error with options:
+   - Fix manually and retry
+   - Skip commit for this milestone
+   - Abort and investigate
+
+### Disabling Auto-Commit
+
+**Per-project** (in `.claude/feature-dev.local.md`):
+```yaml
+auto_commit: false
+```
+
+**Per-session**: Choose "Auto-commit disabled" in Phase 4
+
+**Per-milestone**: Template field `Auto-commit: Skip`
+
+---
+
 ## Implementation Modes
 
 When you reach Phase 4, you'll be asked to choose an implementation mode:
@@ -532,4 +660,14 @@ Sid Bidasaria (sbidasaria@anthropic.com)
 
 ## Version
 
-2.0.0
+2.1.0
+
+### Changelog
+
+**2.1.0** - Session Persistence & Auto-Commit
+- Added session persistence (resume work across sessions)
+- Added auto-commit per milestone (configurable)
+- Added auto-committer agent
+- Added state management documentation
+
+**2.0.0** - Initial release with 7-phase workflow
