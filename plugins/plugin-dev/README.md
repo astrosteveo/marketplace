@@ -4,7 +4,7 @@ A comprehensive toolkit for developing Claude Code plugins with expert guidance 
 
 ## Overview
 
-The plugin-dev toolkit provides seven specialized skills to help you build high-quality Claude Code plugins:
+The plugin-dev toolkit provides eight specialized skills to help you build high-quality Claude Code plugins:
 
 1. **Hook Development** - Advanced hooks API and event-driven automation
 2. **MCP Integration** - Model Context Protocol server integration
@@ -13,6 +13,7 @@ The plugin-dev toolkit provides seven specialized skills to help you build high-
 5. **Command Development** - Creating slash commands with frontmatter and arguments
 6. **Agent Development** - Creating autonomous agents with AI-assisted generation
 7. **Skill Development** - Creating skills with progressive disclosure and strong triggers
+8. **Platform Features** - Claude Code platform capabilities: teams, tasks, sessions, new tools
 
 Each skill follows best practices with progressive disclosure: lean core documentation, detailed references, working examples, and utility scripts.
 
@@ -192,6 +193,25 @@ Use this workflow for structured, high-quality plugin development from concept t
 
 **Use when:** Creating new skills for plugins or improving existing skill quality.
 
+### 8. Platform Features
+
+**Trigger phrases:** "Claude Code teams", "task management", "TeamCreate", "TaskCreate", "SendMessage", "session forking", "NotebookEdit", "extended thinking", "--agents flag"
+
+**What it covers:**
+- Teams and parallel agent coordination (TeamCreate, SendMessage)
+- Task management (TaskCreate, TaskList, TaskUpdate, TaskGet)
+- Session features (forking, cloud handoff, --from-pr)
+- Extended thinking (MAX_THINKING_TOKENS)
+- New built-in tools (NotebookEdit, PDF page ranges)
+- CLI flags (--agents, --max-budget-usd, --disallowedTools)
+
+**Resources:**
+- Core SKILL.md (~1,800 words)
+- 3 reference docs: teams-and-agents, task-management, session-and-cli
+- 2 examples: team-workflow-command, task-management-patterns
+
+**Use when:** Leveraging Claude Code platform capabilities in your plugin design — teams, tasks, sessions, or new tools.
+
 
 ## Installation
 
@@ -303,9 +323,9 @@ All skills follow consistent standards:
 
 ## Total Content
 
-- **Core Skills**: ~11,065 words across 7 SKILL.md files
-- **Reference Docs**: ~10,000+ words of detailed guides
-- **Examples**: 12+ working examples (hook scripts, MCP configs, plugin layouts, settings files)
+- **Core Skills**: ~13,000 words across 8 SKILL.md files
+- **Reference Docs**: ~15,000+ words of detailed guides
+- **Examples**: 15+ working examples (hook scripts, MCP configs, plugin layouts, settings files, team workflows)
 - **Utilities**: 6 production-ready validation/testing/parsing scripts
 
 ## Use Cases
@@ -387,7 +407,7 @@ This plugin is part of the claude-code-marketplace. To contribute improvements:
 
 ## Version
 
-0.1.0 - Initial release with seven comprehensive skills and three validation agents
+0.2.0 - Added platform features skill, agent hooks, async hooks, HTTP transport recommendations, enterprise MCP, settings system, task management, team coordination, 5 new agent frontmatter fields, and 12 new reference/example files
 
 ## Author
 

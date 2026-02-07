@@ -364,6 +364,79 @@ fi
 "Check: 1) condition1 2) condition2 3) condition3. Deny if any fail."
 ```
 
+## Migration Path: Prompt to Agent Hooks
+
+For complex validations that outgrow prompt hooks, migrate to agent hooks.
+
+### When to Migrate
+
+**Signs a prompt hook needs upgrading to agent:**
+- Prompt is very long (>500 characters) trying to describe multi-step logic
+- Validation needs to read files or search the codebase
+- Check requires running commands and evaluating results
+- False positive rate is high because prompt lacks context
+
+### Before (Prompt Hook)
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Check if the file being written follows project conventions. Verify it has proper imports, follows naming patterns, and doesn't duplicate existing functionality. Check the file path matches the project structure. Return approve or deny.",
+          "timeout": 30
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Problems:**
+- LLM can't actually read other files to check conventions
+- Can't search codebase for duplicates
+- No way to verify project structure
+- High false positive/negative rate
+
+### After (Agent Hook)
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write",
+      "hooks": [
+        {
+          "type": "agent",
+          "agent": {
+            "tools": ["Read", "Grep", "Glob"],
+            "prompt": "Before approving this file write, perform these checks: 1) Use Glob to check the project structure and verify the file path is in the correct directory 2) Use Grep to search for similar function/class names to detect duplication 3) Read nearby files to verify import patterns match. Approve only if all checks pass."
+          },
+          "timeout": 90
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Benefits:**
+- Actually reads and searches the codebase
+- Verifies conventions against real files
+- Detects true duplicates
+- Much lower false positive rate
+
+### Migration Tips for Prompt → Agent
+
+1. **Identify tool needs**: What files/searches would make the check accurate?
+2. **Choose minimal tools**: Only grant tools the agent actually needs
+3. **Set appropriate timeout**: Agent hooks need more time (60-120s typical)
+4. **Write clear instructions**: Be specific about steps and criteria
+5. **Test thoroughly**: Agent hooks are more powerful but slower
+
 ## Conclusion
 
 Migrating to prompt-based hooks makes plugins more maintainable, flexible, and powerful. Reserve command hooks for deterministic checks and external tool integration.

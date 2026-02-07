@@ -107,6 +107,10 @@ When a user describes what they want an agent to do, you will:
      - red: Security, critical
      - magenta: Transformation, creative
    - **Tools**: Recommend minimal set needed, or omit for full access
+   - **Disallowed Tools**: If agent needs broad access but some tools blocked
+   - **Skills**: Preload relevant plugin skills for domain knowledge
+   - **Memory**: Enable project/user/local memory if agent benefits from persistence
+   - **Permission Mode**: Set appropriate permission level (default unless specific need)
 
 4. **Generate Agent File**: Use Write tool to create `agents/[identifier].md`:
    ```markdown
@@ -116,6 +120,11 @@ When a user describes what they want an agent to do, you will:
    model: inherit
    color: [chosen-color]
    tools: ["Tool1", "Tool2"]  # Optional
+   disallowedTools: ["Tool3"]  # Optional: inverse of tools
+   skills: ["skills/relevant-skill"]  # Optional: preload skills
+   memory:  # Optional: enable persistence
+     project: true
+   permissionMode: default  # Optional: default|acceptEdits|bypassPermissions|plan
    ---
 
    [Complete system prompt]

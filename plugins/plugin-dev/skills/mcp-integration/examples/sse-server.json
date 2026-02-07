@@ -1,5 +1,5 @@
 {
-  "_comment": "Example SSE MCP server configuration for hosted cloud services",
+  "_comment": "Example SSE MCP server configuration (NOTE: SSE is being phased out; prefer HTTP transport for new integrations — see http-oauth-server.json)",
   "asana": {
     "type": "sse",
     "url": "https://mcp.asana.com/sse"

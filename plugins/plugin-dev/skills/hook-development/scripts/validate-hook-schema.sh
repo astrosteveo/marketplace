@@ -38,7 +38,7 @@ echo "✅ Valid JSON"
 # Check 2: Root structure
 echo ""
 echo "Checking root structure..."
-VALID_EVENTS=("PreToolUse" "PostToolUse" "UserPromptSubmit" "Stop" "SubagentStop" "SessionStart" "SessionEnd" "PreCompact" "Notification")
+VALID_EVENTS=("PreToolUse" "PostToolUse" "UserPromptSubmit" "Stop" "SubagentStop" "SessionStart" "SessionEnd" "PreCompact" "Notification" "PermissionRequest" "PostToolUseFailure" "SubagentStart")
 
 for event in $(jq -r 'keys[]' "$HOOKS_FILE"); do
   found=false
@@ -94,8 +94,8 @@ for event in $(jq -r 'keys[]' "$HOOKS_FILE"); do
         continue
       fi
 
-      if [ "$hook_type" != "command" ] && [ "$hook_type" != "prompt" ]; then
-        echo "❌ $event[$i].hooks[$j]: Invalid type '$hook_type' (must be 'command' or 'prompt')"
+      if [ "$hook_type" != "command" ] && [ "$hook_type" != "prompt" ] && [ "$hook_type" != "agent" ]; then
+        echo "❌ $event[$i].hooks[$j]: Invalid type '$hook_type' (must be 'command', 'prompt', or 'agent')"
         ((error_count++))
         continue
       fi
@@ -123,6 +123,24 @@ for event in $(jq -r 'keys[]' "$HOOKS_FILE"); do
         # Check if prompt-based hooks are used on supported events
         if [ "$event" != "Stop" ] && [ "$event" != "SubagentStop" ] && [ "$event" != "UserPromptSubmit" ] && [ "$event" != "PreToolUse" ]; then
           echo "⚠️  $event[$i].hooks[$j]: Prompt hooks may not be fully supported on $event (best on Stop, SubagentStop, UserPromptSubmit, PreToolUse)"
+          ((warning_count++))
+        fi
+      elif [ "$hook_type" = "agent" ]; then
+        agent_obj=$(jq -r ".\"$event\"[$i].hooks[$j].agent // empty" "$HOOKS_FILE")
+        if [ -z "$agent_obj" ] || [ "$agent_obj" = "null" ]; then
+          echo "❌ $event[$i].hooks[$j]: Agent hooks must have 'agent' field"
+          ((error_count++))
+        else
+          agent_prompt=$(jq -r ".\"$event\"[$i].hooks[$j].agent.prompt // empty" "$HOOKS_FILE")
+          if [ -z "$agent_prompt" ]; then
+            echo "❌ $event[$i].hooks[$j]: Agent hooks must have 'agent.prompt' field"
+            ((error_count++))
+          fi
+        fi
+
+        # Check if agent hooks are used on supported events
+        if [ "$event" != "PreToolUse" ] && [ "$event" != "PostToolUse" ] && [ "$event" != "Stop" ] && [ "$event" != "SubagentStop" ]; then
+          echo "⚠️  $event[$i].hooks[$j]: Agent hooks are best supported on PreToolUse, PostToolUse, Stop, SubagentStop"
           ((warning_count++))
         fi
       fi

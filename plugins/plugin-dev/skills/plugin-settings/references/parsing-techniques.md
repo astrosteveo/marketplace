@@ -21,6 +21,22 @@ This body content can be extracted separately.
 It's useful for prompts, documentation, or additional context.
 ```
 
+### JSON Settings Files
+
+For Claude Code's JSON settings files (`.claude/settings.json`, `.claude/settings.local.json`), use `jq` for parsing:
+
+```bash
+# Read a setting value
+SETTING=$(jq -r '.permissions.allow[]' ".claude/settings.json" 2>/dev/null)
+
+# Check if a setting exists
+if jq -e '.mcpToolApproval' ".claude/settings.json" >/dev/null 2>&1; then
+  echo "MCP approval settings found"
+fi
+```
+
+**Note:** The `.local.md` YAML frontmatter pattern is for plugin-specific configuration. Claude Code's own settings use JSON files.
+
 ## Parsing Frontmatter
 
 ### Extract Frontmatter Block

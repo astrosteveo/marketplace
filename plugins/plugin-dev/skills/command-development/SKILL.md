@@ -141,6 +141,9 @@ allowed-tools: Read, Write, Edit, Bash(git:*)
 **Patterns:**
 - `Read, Write, Edit` - Specific tools
 - `Bash(git:*)` - Bash with git commands only
+- `TaskCreate, TaskList, TaskUpdate, TaskGet` - Task management tools
+- `NotebookEdit` - Jupyter notebook editing
+- `TeamCreate, SendMessage` - Team coordination tools
 - `*` - All tools (rarely needed)
 
 **Use when:** Command requires specific tool access

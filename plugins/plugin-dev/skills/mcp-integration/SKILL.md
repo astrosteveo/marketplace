@@ -15,6 +15,8 @@ Model Context Protocol (MCP) enables Claude Code plugins to integrate with exter
 - Handle OAuth and complex authentication flows
 - Bundle MCP servers with plugins for automatic setup
 
+> **Transport Status (2026):** HTTP (streamable) is the recommended remote transport. SSE is being phased out in favor of HTTP. stdio remains the standard for local servers.
+
 ## MCP Server Configuration Methods
 
 Plugins can bundle MCP servers in two ways:
@@ -91,7 +93,36 @@ Execute local MCP servers as child processes. Best for local tools and custom se
 - Communicates via stdin/stdout
 - Terminates when Claude Code exits
 
+### HTTP (REST API)
+
+> **Recommended** for remote MCP servers. HTTP (streamable) is the primary remote transport.
+
+Connect to RESTful MCP servers with token or OAuth authentication.
+
+**Configuration:**
+```json
+{
+  "api-service": {
+    "type": "http",
+    "url": "https://api.example.com/mcp",
+    "headers": {
+      "Authorization": "Bearer ${API_TOKEN}"
+    }
+  }
+}
+```
+
+HTTP now supports OAuth flows in addition to token auth.
+
+**Use cases:**
+- REST API-based MCP servers
+- Token-based or OAuth authentication
+- Custom API backends
+- Stateless interactions
+
 ### SSE (Server-Sent Events)
+
+> **Note:** SSE transport is being phased out. For new remote integrations, prefer HTTP (streamable) transport. Existing SSE configurations continue to work.
 
 Connect to hosted MCP servers with OAuth support. Best for cloud services.
 
@@ -115,30 +146,6 @@ Connect to hosted MCP servers with OAuth support. Best for cloud services.
 - OAuth flows handled automatically
 - User prompted on first use
 - Tokens managed by Claude Code
-
-### HTTP (REST API)
-
-Connect to RESTful MCP servers with token authentication.
-
-**Configuration:**
-```json
-{
-  "api-service": {
-    "type": "http",
-    "url": "https://api.example.com/mcp",
-    "headers": {
-      "Authorization": "Bearer ${API_TOKEN}",
-      "X-Custom-Header": "value"
-    }
-  }
-}
-```
-
-**Use cases:**
-- REST API-based MCP servers
-- Token-based authentication
-- Custom API backends
-- Stateless interactions
 
 ### WebSocket (Real-time)
 
@@ -220,6 +227,51 @@ allowed-tools: ["mcp__plugin_asana_asana__*"]
 
 **Best practice:** Pre-allow specific tools, not wildcards, for security.
 
+## MCP Tool Search
+
+When plugins provide many MCP tools (more than 10% of context window), Claude Code automatically enables tool search to find relevant tools efficiently.
+
+**Auto-enabled:** When tool count exceeds threshold
+**Manual control:** Set `ENABLE_TOOL_SEARCH=1` or `ENABLE_TOOL_SEARCH=0` environment variable
+
+**Implications for plugin developers:**
+- Write clear, descriptive tool names and descriptions
+- Tools with better descriptions are found more reliably
+- Large tool sets benefit from logical naming conventions
+
+## MCP Prompts as Commands
+
+MCP servers can expose prompts that appear as slash commands in Claude Code:
+
+**Format:** `/mcp__servername__promptname`
+
+**Example:** If server `mytools` exposes a prompt `analyze-code`:
+```
+/mcp__mytools__analyze-code
+```
+
+**For plugin developers:** If your MCP server exposes prompts, document the available prompt commands in your README.
+
+## MCP Resources
+
+MCP servers can expose resources accessible via @ syntax:
+
+**Format:** `@server:protocol://resource/path`
+
+**Example:**
+```
+@mydb:postgres://tables/users
+@docs:file://api-reference.md
+```
+
+**For plugin developers:** Document available resources and their URI formats in your README.
+
+## Dynamic Tool Updates
+
+MCP servers can notify Claude Code when their tool list changes via `list_changed` notifications. This allows tools to be added or removed without restarting Claude Code.
+
+**For server developers:** Implement the `list_changed` notification in your MCP server to support dynamic tool registration.
+
 ## Lifecycle Management
 
 **Automatic startup:**
@@ -267,6 +319,19 @@ Static or environment variable tokens:
 ```
 
 Document required environment variables in README.
+
+### OAuth CLI Flags
+
+For custom OAuth configurations, use CLI flags when adding MCP servers:
+
+```bash
+claude mcp add my-server --transport http \
+  --url https://api.example.com/mcp \
+  --client-id "${CLIENT_ID}" \
+  --client-secret "${CLIENT_SECRET}"
+```
+
+These flags set custom OAuth client credentials for MCP servers that don't use the default OAuth discovery.
 
 ### Environment Variables (stdio)
 
@@ -473,16 +538,61 @@ Look for:
 - Check token scopes and permissions
 - Verify environment variables set
 
+## Exposing Claude Code as MCP Server
+
+Use `claude mcp serve` to expose Claude Code itself as an MCP server, allowing other tools or editors to use Claude Code's capabilities:
+
+```bash
+claude mcp serve
+```
+
+This is useful for integrating Claude Code into existing MCP-compatible workflows.
+
+## Importing from Claude Desktop
+
+Import MCP server configurations from Claude Desktop:
+
+```bash
+claude mcp add-from-claude-desktop
+```
+
+This copies MCP server configurations from Claude Desktop to Claude Code, avoiding duplicate setup.
+
+## Enterprise and Managed MCP
+
+Organizations can manage MCP server configurations centrally:
+
+**Managed configuration:** `managed-mcp.json` deployed by IT
+**Allow/deny lists:**
+- `allowedMcpServers` — Only these servers can be used
+- `deniedMcpServers` — These servers are blocked
+
+**Plugin developer guidance:**
+- Document enterprise compatibility in your README
+- Provide server names that IT teams can add to allow lists
+- Support configuration via environment variables for enterprise environments
+- Handle gracefully when servers are blocked by managed policy
+
+## MCP Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MAX_MCP_OUTPUT_TOKENS` | 25,000 | Maximum tokens in MCP tool output |
+| `MCP_TIMEOUT` | 60s | Connection timeout for MCP servers |
+| `ENABLE_TOOL_SEARCH` | auto | Force enable/disable tool search (1/0) |
+
+**For plugin developers:** If your MCP server returns large outputs, document `MAX_MCP_OUTPUT_TOKENS` in your README.
+
 ## Quick Reference
 
 ### MCP Server Types
 
-| Type | Transport | Best For | Auth |
-|------|-----------|----------|------|
-| stdio | Process | Local tools, custom servers | Env vars |
-| SSE | HTTP | Hosted services, cloud APIs | OAuth |
-| HTTP | REST | API backends, token auth | Tokens |
-| ws | WebSocket | Real-time, streaming | Tokens |
+| Type | Transport | Best For | Auth | Status |
+|------|-----------|----------|------|--------|
+| stdio | Process | Local tools, custom servers | Env vars | Stable |
+| HTTP | REST | Remote servers, APIs | OAuth/Tokens | Recommended |
+| SSE | HTTP/SSE | Hosted services | OAuth | Phasing out |
+| ws | WebSocket | Real-time, streaming | Tokens | Stable |
 
 ### Configuration Checklist
 
@@ -520,13 +630,15 @@ For detailed information, consult:
 - **`references/server-types.md`** - Deep dive on each server type
 - **`references/authentication.md`** - Authentication patterns and OAuth
 - **`references/tool-usage.md`** - Using MCP tools in commands and agents
+- **`references/enterprise-mcp.md`** - Enterprise MCP configuration guide
 
 ### Example Configurations
 
 Working examples in `examples/`:
 
 - **`stdio-server.json`** - Local stdio MCP server
-- **`sse-server.json`** - Hosted SSE server with OAuth
+- **`http-oauth-server.json`** - HTTP server with OAuth (recommended)
+- **`sse-server.json`** - Hosted SSE server with OAuth (phasing out)
 - **`http-server.json`** - REST API with token auth
 
 ### External Resources
@@ -550,4 +662,4 @@ To add MCP integration to a plugin:
 8. Test error cases (connection failures, auth errors)
 9. Document MCP integration in plugin README
 
-Focus on stdio for custom/local servers, SSE for hosted services with OAuth.
+Focus on stdio for custom/local servers, HTTP for remote services (preferred over SSE).

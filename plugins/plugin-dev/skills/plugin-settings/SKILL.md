@@ -469,6 +469,64 @@ Make sure tests pass after each fix.
 - Reads body as the prompt to feed back
 - Updates iteration count on each loop
 
+## Claude Code Settings System
+
+Beyond plugin-specific `.local.md` files, Claude Code has a comprehensive settings hierarchy that plugins interact with:
+
+### Settings Hierarchy (Highest to Lowest Priority)
+
+| Priority | Source | Location | Managed By |
+|----------|--------|----------|-----------|
+| 1 | Managed (enterprise) | Deployed by IT | Organization |
+| 2 | CLI flags | Command line | User |
+| 3 | Local project | `.claude/settings.local.json` | User (not committed) |
+| 4 | Shared project | `.claude/settings.json` | Team (committed) |
+| 5 | User | `~/.claude/settings.json` | User |
+
+Higher-priority settings override lower-priority ones.
+
+### Key Settings for Plugin Developers
+
+**Permission rules** (in settings.json):
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Glob", "Grep"],
+    "deny": ["Bash(rm:*)"]
+  }
+}
+```
+
+**MCP approval settings:**
+```json
+{
+  "mcpToolApproval": {
+    "server-name": "auto-approve"
+  }
+}
+```
+
+**Behavioral settings:**
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `permissions` | Object | Tool allow/deny rules |
+| `mcpToolApproval` | Object | Per-server tool approval |
+| `env` | Object | Environment variable overrides |
+| `disableAutoUpdater` | Boolean | Disable auto-updates |
+
+### Managed Settings (Enterprise)
+
+Enterprise environments may have managed settings that override plugin behavior:
+- Plugin hooks may be restricted
+- MCP servers may need approval
+- Certain tools may be blocked
+
+**Plugin developer guidance:**
+- Handle restricted operations gracefully
+- Check for capability before using (don't crash on denied tools)
+- Document enterprise compatibility requirements
+
 ## Quick Reference
 
 ### File Location
@@ -512,6 +570,7 @@ For detailed implementation patterns:
 
 - **`references/parsing-techniques.md`** - Complete guide to parsing YAML frontmatter and markdown bodies
 - **`references/real-world-examples.md`** - Deep dive into multi-agent-swarm and ralph-loop implementations
+- **`references/settings-system.md`** - Complete settings system reference
 
 ### Example Files
 

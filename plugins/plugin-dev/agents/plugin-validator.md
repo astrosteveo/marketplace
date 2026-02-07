@@ -93,6 +93,11 @@ You are an expert plugin validator specializing in comprehensive validation of C
        - Model is valid (inherit/sonnet/opus/haiku)
        - Color is valid (blue/cyan/green/yellow/magenta/red)
        - System prompt exists and is substantial (>20 chars)
+       - If `disallowedTools` present: validate is array, warn if overlaps with `tools`
+       - If `skills` present: validate paths look reasonable
+       - If `memory` present: validate structure (user/project/local booleans)
+       - If `permissionMode` present: validate is valid option
+       - If `hooks` present: validate event names
 
 6. **Validate Skills** (if `skills/` exists):
    - Use Glob to find `skills/*/SKILL.md`
@@ -125,12 +130,18 @@ You are an expert plugin validator specializing in comprehensive validation of C
    - No unnecessary files (node_modules, .DS_Store, etc.)
    - .gitignore present if needed
    - LICENSE file present
+   - `.claude/rules/` directory validated if present (markdown files, reasonable size)
 
 10. **Security Checks**:
     - No hardcoded credentials in any files
     - MCP servers use HTTPS/WSS not HTTP/WS
     - Hooks don't have obvious security issues
     - No secrets in example files
+
+11. **Validate State File Pattern** (if `.claude/*.local.md` references exist):
+    - Check for corresponding documentation in README
+    - Verify .gitignore includes `.claude/*.local.md`
+    - Validate example/template settings if provided
 
 **Quality Standards:**
 - All validation errors include file path and specific issue

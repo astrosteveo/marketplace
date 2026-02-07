@@ -1,0 +1,20 @@
+{
+  "_comment": "Example HTTP (streamable) MCP server configurations — recommended for remote servers",
+  "company-api": {
+    "type": "http",
+    "url": "https://api.example.com/mcp",
+    "headers": {
+      "Authorization": "Bearer ${API_TOKEN}",
+      "X-API-Version": "2026-01-01"
+    }
+  },
+  "oauth-service": {
+    "type": "http",
+    "url": "https://mcp.example.com/mcp"
+  },
+  "custom-oauth": {
+    "type": "http",
+    "url": "https://api.internal.com/mcp",
+    "_note": "Added via: claude mcp add custom-oauth --transport http --url https://api.internal.com/mcp --client-id $CLIENT_ID --client-secret $CLIENT_SECRET"
+  }
+}

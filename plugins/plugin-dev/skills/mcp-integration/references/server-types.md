@@ -100,6 +100,8 @@ Execute local MCP servers as child processes with communication via stdin/stdout
 
 ## SSE (Server-Sent Events)
 
+> **Deprecation Notice:** SSE transport is being phased out in favor of HTTP (streamable). For new implementations, use HTTP transport. Existing SSE configurations continue to work but should be migrated.
+
 ### Overview
 
 Connect to hosted MCP servers via HTTP with server-sent events for streaming. Best for cloud services and OAuth authentication.
@@ -203,6 +205,8 @@ Deploy your own MCP server and expose via HTTPS + SSE.
 
 ## HTTP (REST API)
 
+> **Recommended:** HTTP (streamable) is the recommended transport for remote MCP servers.
+
 ### Overview
 
 Connect to RESTful MCP servers via standard HTTP requests. Best for token-based auth and stateless interactions.
@@ -270,6 +274,21 @@ Connect to RESTful MCP servers via standard HTTP requests. Best for token-based 
   }
 }
 ```
+
+### OAuth (HTTP)
+
+HTTP transport now supports OAuth authentication flows:
+
+```json
+{
+  "api": {
+    "type": "http",
+    "url": "https://api.example.com/mcp"
+  }
+}
+```
+
+When the server requires OAuth, Claude Code handles the flow automatically (same as SSE OAuth).
 
 ### Use Cases
 
@@ -375,11 +394,12 @@ Connect to MCP servers via WebSocket for real-time bidirectional communication. 
 | **Transport** | Process | HTTP/SSE | HTTP | WebSocket |
 | **Direction** | Bidirectional | Server→Client | Request/Response | Bidirectional |
 | **State** | Stateful | Stateful | Stateless | Stateful |
-| **Auth** | Env vars | OAuth/Headers | Headers | Headers |
+| **Auth** | Env vars | OAuth/Headers | OAuth/Headers | Headers |
 | **Use Case** | Local tools | Cloud services | REST APIs | Real-time |
 | **Latency** | Lowest | Medium | Medium | Low |
 | **Setup** | Easy | Medium | Easy | Medium |
 | **Reconnect** | Process respawn | Automatic | N/A | Automatic |
+| **Status** | Stable | Phasing out | Recommended | Stable |
 
 ## Choosing the Right Type
 
@@ -534,3 +554,34 @@ Choose the MCP server type based on your use case:
 - **WebSocket** for real-time bidirectional communication
 
 Test thoroughly and handle errors gracefully for robust MCP integration.
+
+## Migration: SSE to HTTP
+
+### Before (SSE)
+
+```json
+{
+  "my-service": {
+    "type": "sse",
+    "url": "https://mcp.example.com/sse"
+  }
+}
+```
+
+### After (HTTP)
+
+```json
+{
+  "my-service": {
+    "type": "http",
+    "url": "https://mcp.example.com/mcp"
+  }
+}
+```
+
+**Migration steps:**
+1. Check if the server supports HTTP transport (most new servers do)
+2. Update `type` from `"sse"` to `"http"`
+3. Update the URL endpoint (typically `/mcp` instead of `/sse`)
+4. Test the connection with `/mcp` command
+5. OAuth tokens carry over — no re-authentication needed

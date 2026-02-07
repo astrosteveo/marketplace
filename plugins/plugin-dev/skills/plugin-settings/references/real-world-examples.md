@@ -393,3 +393,8 @@ The `.claude/plugin-name.local.md` pattern provides:
 - Supports both structured config (YAML) and freeform content (markdown)
 
 Use this pattern for any plugin that needs user-configurable behavior or state persistence.
+
+## Further Reading
+
+For details on Claude Code's broader settings system (JSON settings hierarchy, managed settings, permission rules), see:
+- **`references/settings-system.md`** — Complete settings system reference

@@ -56,8 +56,18 @@ Your output must be a valid JSON object with exactly these fields:
 {
   "identifier": "A unique, descriptive identifier using lowercase letters, numbers, and hyphens (e.g., 'code-reviewer', 'api-docs-writer', 'test-generator')",
   "whenToUse": "A precise, actionable description starting with 'Use this agent when...' that clearly defines the triggering conditions and use cases. Ensure you include examples as described above.",
-  "systemPrompt": "The complete system prompt that will govern the agent's behavior, written in second person ('You are...', 'You will...') and structured for maximum clarity and effectiveness"
+  "systemPrompt": "The complete system prompt that will govern the agent's behavior, written in second person ('You are...', 'You will...') and structured for maximum clarity and effectiveness",
+  "disallowedTools": ["optional", "array of tool names to block"],
+  "skills": ["optional", "skill paths to preload"],
+  "memory": {"user": false, "project": true},
+  "permissionMode": "default"
 }
+
+Note: The last four fields (disallowedTools, skills, memory, permissionMode) are optional. Only include them when the agent design warrants them:
+- disallowedTools: When agent should be prevented from using certain tools
+- skills: When agent needs preloaded domain knowledge from specific skills
+- memory: When agent benefits from persistent context (user/project/local)
+- permissionMode: When agent needs non-default permission behavior (default, acceptEdits, bypassPermissions, plan)
 
 Key principles for your system prompts:
 - Be specific rather than generic - avoid vague instructions

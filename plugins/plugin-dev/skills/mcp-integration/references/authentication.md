@@ -54,6 +54,25 @@ This plugin requires the following Asana permissions:
 - Access workspace data
 ```
 
+### OAuth CLI Flags
+
+For MCP servers requiring custom OAuth configurations, use CLI flags:
+
+```bash
+# Add server with custom OAuth credentials
+claude mcp add my-server --transport http \
+  --url https://api.example.com/mcp \
+  --client-id "${MY_CLIENT_ID}" \
+  --client-secret "${MY_CLIENT_SECRET}"
+```
+
+**When to use:**
+- Server requires specific OAuth client credentials
+- Default OAuth discovery doesn't work
+- Custom authorization server configuration needed
+
+**Note:** HTTP transport now supports full OAuth flows, matching SSE's OAuth capabilities.
+
 ### Token Storage
 
 Tokens are stored securely by Claude Code:

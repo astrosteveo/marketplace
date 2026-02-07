@@ -164,9 +164,22 @@ Also, delete any example files and directories not needed for the skill. Create 
 ---
 name: Skill Name
 description: This skill should be used when the user asks to "specific phrase 1", "specific phrase 2", "specific phrase 3". Include exact phrases users would say that should trigger this skill. Be concrete and specific.
+skills: ["references/advanced-patterns"]
 version: 0.1.0
 ---
 ```
+
+**Optional frontmatter fields:**
+
+```yaml
+---
+name: Skill Name
+description: This skill should be used when...
+skills: ["references/sub-skill-1", "references/sub-skill-2"]
+---
+```
+
+The `skills` field allows preloading specific skills into subagent context when this skill triggers agent creation. This bypasses the normal auto-trigger mechanism for immediate availability.
 
 **Good description examples:**
 ```yaml
@@ -289,6 +302,13 @@ cc --plugin-dir /path/to/plugin
 # Ask questions that should trigger the skill
 # Verify skill loads correctly
 ```
+
+### Skill-Agent Memory Interaction
+
+When skills are preloaded into agents (via the agent's `skills` frontmatter field), the skill content is available alongside any agent memory. This enables patterns where:
+- Agent memory provides project-specific context
+- Preloaded skills provide procedural knowledge
+- Together they create a specialized, context-aware agent
 
 ## Examples from Plugin-Dev
 

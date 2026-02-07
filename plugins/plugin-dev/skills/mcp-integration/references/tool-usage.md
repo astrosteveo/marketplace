@@ -499,6 +499,50 @@ Steps:
 5. **Report**: Provide summary to user
 ```
 
+## Tool Search
+
+When the total number of MCP tools exceeds approximately 10% of the context window, Claude Code automatically enables tool search. This means Claude searches for relevant tools rather than loading all tool definitions.
+
+**Impact on plugin developers:**
+- Tool names and descriptions become critical for discoverability
+- Use clear, descriptive naming: `create_user` not `cu`
+- Write detailed tool descriptions in your MCP server
+- Test that your tools are found correctly with tool search enabled
+
+**Manual control:**
+```bash
+ENABLE_TOOL_SEARCH=1 claude  # Force enable
+ENABLE_TOOL_SEARCH=0 claude  # Force disable
+```
+
+## MCP Prompts
+
+MCP servers can expose prompts that appear as slash commands:
+
+**Format:** `/mcp__servername__promptname`
+
+**Using in plugins:**
+- Document available prompts in your README
+- Prompts from plugin MCP servers are automatically available
+- Users invoke them like any other slash command
+- Arguments passed after the command name
+
+**Example:**
+```bash
+# If your MCP server exposes an "analyze" prompt
+/mcp__myserver__analyze src/main.ts
+```
+
+## Output Token Limits
+
+MCP tool outputs are limited by `MAX_MCP_OUTPUT_TOKENS` (default: 25,000 tokens).
+
+**For plugin developers:**
+- Design tools to return concise, relevant output
+- Paginate large results
+- Provide summary endpoints alongside detail endpoints
+- Document if users need to increase the limit for your tools
+
 ## Troubleshooting
 
 ### Tools Not Available

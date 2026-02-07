@@ -565,3 +565,56 @@ plugin/
 1. **Avoid deep nesting**: Impacts discovery time
 2. **Minimize custom paths**: Use defaults when possible
 3. **Keep configurations small**: Large configs slow loading
+
+## Rules Directory Pattern
+
+The `.claude/rules/` directory contains project rules that are always loaded into Claude's context:
+
+```
+my-plugin/
+├── .claude/
+│   └── rules/
+│       ├── coding-standards.md    # Always-loaded coding rules
+│       └── security-policies.md   # Always-loaded security policies
+└── ...
+```
+
+**Key characteristics:**
+- Rules files are always loaded (not triggered by description)
+- Content is injected into Claude's system context
+- Use for project-wide constraints and standards
+- Keep rules concise — they consume context in every conversation
+
+**When to use rules vs skills:**
+- **Rules**: Always-applicable constraints (coding standards, security policies)
+- **Skills**: Triggered-on-demand knowledge (hook patterns, MCP setup guides)
+
+**Example rule file (.claude/rules/coding-standards.md):**
+```markdown
+# Coding Standards
+
+- Use TypeScript strict mode
+- All functions must have return types
+- No console.log in production code
+- Use camelCase for variables, PascalCase for types
+```
+
+## State File Pattern
+
+Store plugin-specific configuration in `.claude/plugin-name.local.md`:
+
+```
+project-root/
+└── .claude/
+    ├── my-plugin.local.md      # Plugin configuration (gitignored)
+    └── settings.json           # Claude Code settings (shared)
+```
+
+**Key characteristics:**
+- YAML frontmatter for structured settings
+- Markdown body for additional context
+- `.local.md` suffix indicates gitignored files
+- Read by hooks, commands, and agents
+- Changes require Claude Code restart
+
+**See the plugin-settings skill for complete documentation of this pattern.**

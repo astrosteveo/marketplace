@@ -32,7 +32,9 @@ plugin-name/
 ├── hooks/
 │   └── hooks.json           # Event handler configuration
 ├── .mcp.json                # MCP server definitions
-└── scripts/                 # Helper scripts and utilities
+├── scripts/                 # Helper scripts and utilities
+├── .claude/
+│   └── rules/               # Project rules (always loaded)
 ```
 
 **Critical rules:**
@@ -194,6 +196,8 @@ Skill instructions and guidance...
 
 **Supporting files**: Skills can include scripts, references, examples, or assets in subdirectories
 
+**Preloading:** Skills can be preloaded into agent context using the `skills` frontmatter field in agent definitions, bypassing the auto-trigger mechanism.
+
 **Usage**: Claude Code autonomously activates skills based on task context matching the description
 
 ### Hooks
@@ -352,6 +356,10 @@ Claude Code automatically discovers and loads components:
 - No restart required: Changes take effect on next Claude Code session
 
 **Override behavior**: Custom paths in `plugin.json` supplement (not replace) default directories
+
+### State Files
+
+Plugins can store per-project configuration in `.claude/plugin-name.local.md` files. See the plugin-settings skill for the complete state file pattern.
 
 ## Best Practices
 

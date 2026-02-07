@@ -256,6 +256,24 @@ Additional directories or files containing agent definitions.
 - Separating general-purpose from task-specific agents
 - Loading agents from plugin dependencies
 
+#### skills
+
+**Type**: String or Array
+**Format**: Relative path(s) to skill directories
+**Example**: `"./custom-skills"` or `["./skills", "./extra-skills"]`
+**Default**: `"./skills"`
+
+Custom paths for skill discovery. Skills at these paths are loaded in addition to the default `skills/` directory.
+
+```json
+{
+  "name": "my-plugin",
+  "skills": ["./skills", "./advanced-skills"]
+}
+```
+
+**Note:** Skills can also be preloaded in agent definitions using the agent's `skills` frontmatter field.
+
 #### hooks
 
 **Type**: String (path to JSON file) or Object (inline configuration)

@@ -1,7 +1,7 @@
 ---
 description: Guided end-to-end plugin creation workflow with component design, implementation, and validation
 argument-hint: Optional plugin description
-allowed-tools: ["Read", "Write", "Grep", "Glob", "Bash", "TodoWrite", "AskUserQuestion", "Skill", "Task"]
+allowed-tools: ["Read", "Write", "Grep", "Glob", "Bash", "TodoWrite", "AskUserQuestion", "Skill", "Task", "TaskCreate", "TaskList", "TaskUpdate", "TaskGet", "TeamCreate", "SendMessage"]
 ---
 
 # Plugin Creation Workflow
@@ -129,6 +129,7 @@ Guide the user through creating a complete, high-quality Claude Code plugin from
    mkdir -p plugin-name/commands   # if needed
    mkdir -p plugin-name/agents     # if needed
    mkdir -p plugin-name/hooks      # if needed
+   mkdir -p plugin-name/.claude/rules  # if needed
    ```
 4. Create plugin.json manifest using Write tool:
    ```json
@@ -197,6 +198,8 @@ Guide the user through creating a complete, high-quality Claude Code plugin from
    - Create agent markdown file with frontmatter and system prompt
    - Add appropriate model, color, and tools
    - Validate with validate-agent.sh script
+   - Consider team-aware design: Can the agent participate in multi-agent teams?
+   - If agent supports background execution, ensure it doesn't require user interaction
 
 ### For Hooks:
 1. Load hook-development skill using Skill tool

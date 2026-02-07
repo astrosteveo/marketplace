@@ -167,6 +167,101 @@ else
   echo "💡 tools: not specified (agent has access to all tools)"
 fi
 
+# Check disallowedTools field (optional)
+DISALLOWED_TOOLS=$(echo "$FRONTMATTER" | grep '^disallowedTools:' | sed 's/disallowedTools: *//')
+
+if [ -n "$DISALLOWED_TOOLS" ]; then
+  echo "✅ disallowedTools: $DISALLOWED_TOOLS"
+
+  # Warn if both tools and disallowedTools are set with overlapping values
+  if [ -n "$TOOLS" ]; then
+    for tool in $(echo "$DISALLOWED_TOOLS" | tr -d '[]"' | tr ',' ' '); do
+      if echo "$TOOLS" | grep -q "$tool"; then
+        echo "⚠️  disallowedTools contains '$tool' which is also in tools (contradiction)"
+        ((warning_count++))
+      fi
+    done
+  fi
+fi
+
+# Check skills field (optional)
+SKILLS=$(echo "$FRONTMATTER" | grep '^skills:' | sed 's/skills: *//')
+
+if [ -n "$SKILLS" ]; then
+  echo "✅ skills: $SKILLS"
+
+  # Verify paths look reasonable
+  for skill_path in $(echo "$SKILLS" | tr -d '[]"' | tr ',' ' '); do
+    if ! echo "$skill_path" | grep -q "skills/"; then
+      echo "⚠️  skills path '$skill_path' doesn't contain 'skills/' - verify this is correct"
+      ((warning_count++))
+    fi
+  done
+fi
+
+# Check memory field (optional)
+MEMORY=$(echo "$FRONTMATTER" | grep '^memory:' | sed 's/memory: *//')
+
+if [ -n "$MEMORY" ]; then
+  echo "✅ memory: configured"
+
+  # Check for valid memory types (user, project, local with boolean values)
+  for mem_type in user project local; do
+    mem_val=$(echo "$FRONTMATTER" | grep "^  $mem_type:" | sed "s/  $mem_type: *//")
+    if [ -n "$mem_val" ]; then
+      if [ "$mem_val" != "true" ] && [ "$mem_val" != "false" ]; then
+        echo "⚠️  memory.$mem_type should be true or false, got: $mem_val"
+        ((warning_count++))
+      fi
+    fi
+  done
+fi
+
+# Check permissionMode field (optional)
+PERMISSION_MODE=$(echo "$FRONTMATTER" | grep '^permissionMode:' | sed 's/permissionMode: *//' | tr -d '"')
+
+if [ -n "$PERMISSION_MODE" ]; then
+  echo "✅ permissionMode: $PERMISSION_MODE"
+
+  case "$PERMISSION_MODE" in
+    default|acceptEdits|bypassPermissions|plan)
+      # Valid permission mode
+      ;;
+    *)
+      echo "⚠️  Unknown permissionMode: $PERMISSION_MODE (valid: default, acceptEdits, bypassPermissions, plan)"
+      ((warning_count++))
+      ;;
+  esac
+
+  if [ "$PERMISSION_MODE" = "bypassPermissions" ]; then
+    echo "⚠️  bypassPermissions is set - ensure this agent is trusted and well-tested"
+    ((warning_count++))
+  fi
+fi
+
+# Check hooks field (optional)
+HOOKS=$(echo "$FRONTMATTER" | grep '^hooks:' | sed 's/hooks: *//')
+
+if [ -n "$HOOKS" ]; then
+  echo "✅ hooks: configured"
+
+  # Basic check for valid event names in hooks
+  VALID_HOOK_EVENTS=("PreToolUse" "PostToolUse" "UserPromptSubmit" "Stop" "SubagentStop" "SessionStart" "SessionEnd" "PreCompact" "Notification" "PermissionRequest" "PostToolUseFailure" "SubagentStart")
+  for event_line in $(echo "$FRONTMATTER" | grep -E '^\s{2}[A-Z]' | sed 's/: *//; s/^ *//' | tr -d ':'); do
+    found=false
+    for valid_event in "${VALID_HOOK_EVENTS[@]}"; do
+      if [ "$event_line" = "$valid_event" ]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ] && [ -n "$event_line" ]; then
+      echo "⚠️  hooks contains unknown event: $event_line"
+      ((warning_count++))
+    fi
+  done
+fi
+
 # Check 5: System prompt
 echo ""
 echo "Checking system prompt..."

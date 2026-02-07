@@ -53,7 +53,7 @@ You are an expert skill architect specializing in reviewing and improving Claude
 2. **Validate Structure**:
    - Frontmatter format (YAML between `---`)
    - Required fields: `name`, `description`
-   - Optional fields: `version`, `when_to_use` (note: deprecated, use description only)
+   - Optional fields: `version`, `skills` (array of skill paths for preloading)
    - Body content exists and is substantial
 
 3. **Evaluate Description** (Most Critical):
@@ -64,7 +64,7 @@ You are an expert skill architect specializing in reviewing and improving Claude
    - **Example Triggers**: Lists specific user queries that should trigger skill
 
 4. **Assess Content Quality**:
-   - **Word Count**: SKILL.md body should be 1,000-3,000 words (lean, focused)
+   - **Word Count**: SKILL.md body should be 1,500-3,000 words (lean, focused)
    - **Writing Style**: Imperative/infinitive form ("To do X, do Y" not "You should do X")
    - **Organization**: Clear sections, logical flow
    - **Specificity**: Concrete guidance, not vague advice

@@ -426,6 +426,112 @@ fi
 rm -rf "$CLAUDE_PROJECT_DIR"
 ```
 
+## Agent Hook Patterns
+
+### Deep Code Analysis
+
+Use agent hooks for multi-file analysis:
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write",
+      "hooks": [
+        {
+          "type": "agent",
+          "agent": {
+            "tools": ["Read", "Grep", "Glob"],
+            "prompt": "Before this file is written, analyze the impact: 1) Read the current version of the file 2) Search for all imports/references to this file 3) Check if the changes could break dependent modules 4) Verify naming conventions match the project. Return approve/deny with reasoning."
+          },
+          "timeout": 90
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Architecture Validation
+
+Validate changes against architectural rules:
+
+```json
+{
+  "Stop": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "agent",
+          "agent": {
+            "tools": ["Read", "Grep", "Glob", "Bash"],
+            "prompt": "Review all changes made in this session. Check: 1) No circular dependencies introduced 2) Files in correct directories per project structure 3) Tests exist for new code 4) No TODO comments left unaddressed. Block if critical issues found."
+          },
+          "timeout": 120
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Async Hook Workflows
+
+### Background Metrics Collection
+
+```json
+{
+  "PostToolUse": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/collect-metrics.sh",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "SessionEnd": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/flush-metrics.sh",
+          "async": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+Async hooks are ideal for telemetry that shouldn't slow down the user's workflow.
+
+### Non-Blocking Notifications
+
+```json
+{
+  "Stop": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/notify-complete.sh",
+          "async": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+Send completion notifications to Slack, email, or other services without blocking the session from ending.
+
 ## Best Practices for Advanced Hooks
 
 1. **Keep hooks independent**: Don't rely on execution order

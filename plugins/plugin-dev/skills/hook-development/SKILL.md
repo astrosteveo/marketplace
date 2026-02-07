@@ -56,6 +56,63 @@ Execute bash commands for deterministic checks:
 - External tool integrations
 - Performance-critical checks
 
+### Agent Hooks
+
+Spawn a subagent with multi-turn tool access for deep analysis:
+
+```json
+{
+  "type": "agent",
+  "agent": {
+    "tools": ["Read", "Grep", "Glob", "Bash"],
+    "prompt": "Analyze the code change for architectural impact. Review dependencies, check for breaking changes, and assess test coverage."
+  },
+  "timeout": 120
+}
+```
+
+**Supported events:** PreToolUse, PostToolUse, Stop, SubagentStop
+
+**Characteristics:**
+- Multi-turn tool access for complex analysis
+- Full context of the hook event available
+- Can read files, search code, run commands
+- Best for deep validation requiring multiple steps
+
+**When to choose:**
+- Analysis needs multiple file reads or searches
+- Validation requires running commands and checking results
+- Complex reasoning that benefits from tool access
+- Checks that would be too complex for a single prompt
+
+### Async Hooks
+
+Run hooks in the background without blocking Claude's workflow:
+
+```json
+{
+  "type": "command",
+  "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/log-metrics.sh",
+  "async": true
+}
+```
+
+**Behavior:**
+- Hook starts but doesn't block Claude from continuing
+- Output is not waited for or fed back to Claude
+- Ideal for fire-and-forget operations
+
+**Use cases:**
+- Logging and metrics collection
+- External notifications (Slack, email)
+- Background data synchronization
+- Analytics and telemetry
+
+**Limitations:**
+- Cannot influence Claude's decisions (no blocking/approval)
+- Output not available in transcript
+- Error handling must be self-contained
+
 ## Hook Configuration Formats
 
 ### Plugin hooks.json Format
@@ -115,6 +172,24 @@ Execute bash commands for deterministic checks:
 - No description field
 - This is the **settings format**
 
+### Hooks in Agent/Skill Frontmatter
+
+Hooks can also be defined directly in agent or skill YAML frontmatter using the `hooks` field:
+
+```yaml
+---
+name: my-agent
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: prompt
+          prompt: "Validate this write operation"
+---
+```
+
+These hooks are active only when the agent or skill is in use.
+
 **Important:** The examples below show the hook event structure that goes inside either format. For plugin hooks.json, wrap these in `{"hooks": {...}}`.
 
 ## Hook Events
@@ -148,6 +223,21 @@ Execute before any tool runs. Use to approve, deny, or modify tool calls.
     "updatedInput": {"field": "modified_value"}
   },
   "systemMessage": "Explanation for Claude"
+}
+```
+
+**Tool Input Modification:**
+PreToolUse hooks can modify tool inputs by returning `updatedInput`. The modified input replaces the original before the tool executes:
+
+```json
+{
+  "hookSpecificOutput": {
+    "permissionDecision": "allow",
+    "updatedInput": {
+      "command": "cd /safe/dir && original-command"
+    }
+  },
+  "systemMessage": "Command prefixed with safe directory change"
 }
 ```
 
@@ -273,6 +363,70 @@ Execute before context compaction. Use to add critical information to preserve.
 ### Notification
 
 Execute when Claude sends notifications. Use to react to user notifications.
+
+### PermissionRequest
+
+Execute when a tool requires user permission. Use to auto-approve or enforce policies.
+
+**Example:**
+```json
+{
+  "PermissionRequest": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/check-permission.sh"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### PostToolUseFailure
+
+Execute when a tool call fails. Use to log failures, attempt recovery, or notify.
+
+**Example:**
+```json
+{
+  "PostToolUseFailure": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/log-failure.sh",
+          "async": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+### SubagentStart
+
+Execute when a subagent is about to start. Use to inject context or enforce constraints.
+
+**Example:**
+```json
+{
+  "SubagentStart": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/inject-context.sh"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Hook Output Format
 
@@ -416,6 +570,10 @@ Plugin hooks merge with user's hooks and run in parallel.
 // Specific plugin's MCP tools
 "matcher": "mcp__plugin_asana_.*"
 
+// Specific MCP server's tools (server name format)
+"matcher": "mcp__server-name__tool-name"  // Exact MCP tool
+"matcher": "mcp__myserver__.*"            // All tools from server
+
 // All file operations
 "matcher": "Read|Write|Edit"
 
@@ -488,6 +646,14 @@ cd $CLAUDE_PROJECT_DIR
 ```
 
 **Defaults:** Command hooks (60s), Prompt hooks (30s)
+
+### Default Timeouts by Hook Type
+
+| Hook Type | Default Timeout | Max Timeout |
+|-----------|----------------|-------------|
+| Command   | 60 seconds     | 600 seconds |
+| Prompt    | 30 seconds     | 600 seconds |
+| Agent     | 120 seconds    | 600 seconds |
 
 ## Performance Considerations
 
@@ -641,6 +807,9 @@ echo "$output" | jq .
 | SessionEnd | Session ends | Cleanup, logging |
 | PreCompact | Before compact | Preserve context |
 | Notification | User notified | Logging, reactions |
+| PermissionRequest | Permission needed | Auto-approve, policies |
+| PostToolUseFailure | Tool fails | Logging, recovery |
+| SubagentStart | Subagent starting | Context injection |
 
 ### Best Practices
 
@@ -708,4 +877,4 @@ To implement hooks in a plugin:
 8. Test in Claude Code with `claude --debug`
 9. Document hooks in plugin README
 
-Focus on prompt-based hooks for most use cases. Reserve command hooks for performance-critical or deterministic checks.
+Focus on prompt-based hooks for most use cases. Reserve command hooks for performance-critical or deterministic checks. Use agent hooks for complex multi-step validation requiring tool access.

@@ -344,3 +344,109 @@ fi
 - Per-project settings
 - Team-specific rules
 - Dynamic validation criteria
+
+## Pattern 11: Agent-Based Deep Analysis
+
+Use agent hooks for complex multi-step validation:
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "agent",
+          "agent": {
+            "tools": ["Read", "Grep", "Glob"],
+            "prompt": "Analyze the file being written. Check: 1) Read the existing file if it exists 2) Search for imports/references to this file in the codebase 3) Verify the change won't break dependent files. Return 'approve' if safe or 'deny' with specific concerns."
+          },
+          "timeout": 60
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Use for:** Complex validation that requires reading multiple files and understanding dependencies.
+
+## Pattern 12: Async Background Logging
+
+Fire-and-forget logging without blocking Claude:
+
+```json
+{
+  "PostToolUse": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/log-activity.sh",
+          "async": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Example script (log-activity.sh):**
+```bash
+#!/bin/bash
+input=$(cat)
+tool_name=$(echo "$input" | jq -r '.tool_name')
+timestamp=$(date -Iseconds)
+
+# Log to file without blocking
+echo "$timestamp | $tool_name" >> "$CLAUDE_PROJECT_DIR/.claude/activity.log"
+
+# Optional: send to external service
+curl -s -X POST "$WEBHOOK_URL" \
+  -H 'Content-Type: application/json' \
+  -d "{\"tool\": \"$tool_name\", \"time\": \"$timestamp\"}" \
+  2>/dev/null || true
+```
+
+**Use for:** Activity tracking, analytics, external notifications without impacting performance.
+
+## Pattern 13: Tool Input Sanitization
+
+Modify tool inputs before execution using updatedInput:
+
+```json
+{
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/sanitize-command.sh"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Example script (sanitize-command.sh):**
+```bash
+#!/bin/bash
+input=$(cat)
+command=$(echo "$input" | jq -r '.tool_input.command')
+
+# Prefix commands with safe directory
+safe_command="cd \"$CLAUDE_PROJECT_DIR\" && $command"
+
+# Return modified input
+jq -n --arg cmd "$safe_command" '{
+  "hookSpecificOutput": {
+    "permissionDecision": "allow",
+    "updatedInput": {"command": $cmd}
+  }
+}'
+```
+
+**Use for:** Automatically sanitizing or augmenting tool inputs before execution.

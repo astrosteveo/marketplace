@@ -158,6 +158,90 @@ tools: ["Read", "Write", "Grep", "Bash"]
 - Testing: `["Read", "Bash", "Grep"]`
 - Full access: Omit field or use `["*"]`
 
+### disallowedTools (optional)
+
+Prevent agent from using specific tools.
+
+**Format:** Array of tool name patterns
+
+```yaml
+disallowedTools: ["Edit", "Bash"]
+```
+
+**Use when:** Agent should have broad access but certain tools should be blocked (inverse of `tools`).
+
+### skills (optional)
+
+Preload specific skills when agent starts.
+
+**Format:** Array of skill paths relative to the plugin
+
+```yaml
+skills: ["skills/hook-development", "skills/mcp-integration"]
+```
+
+**Use when:** Agent needs specialized knowledge from plugin skills without waiting for auto-triggering.
+
+### memory (optional)
+
+Configure agent memory access and storage.
+
+**Format:** Object with memory type configuration
+
+```yaml
+memory:
+  user: true
+  project: true
+  local: true
+```
+
+**Memory types:**
+- `user`: `~/.claude/memory/` — Persists across all projects
+- `project`: `.claude/memory/` — Shared across team, committed to git
+- `local`: `.claude/local-memory/` — Local to machine, not committed
+
+**Use when:** Agent benefits from persistent context across sessions.
+
+### hooks (optional)
+
+Define hooks active only while this agent is running.
+
+**Format:** Hook configuration object (same format as hooks.json)
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: prompt
+          prompt: "Validate this write for the agent's specific constraints"
+  Stop:
+    - matcher: "*"
+      hooks:
+        - type: prompt
+          prompt: "Verify agent completed all assigned tasks"
+```
+
+**Use when:** Agent needs specialized validation or behavior that shouldn't apply globally.
+
+### permissionMode (optional)
+
+Set the agent's permission behavior.
+
+**Format:** String
+
+```yaml
+permissionMode: "bypassPermissions"
+```
+
+**Options:**
+- `"default"` — Normal permission prompts (default)
+- `"acceptEdits"` — Auto-accept file edits
+- `"bypassPermissions"` — Skip all permission prompts
+- `"plan"` — Require plan approval before implementing
+
+**Use with caution:** `bypassPermissions` should only be used for trusted, well-tested agents. Document the permission mode and rationale in the agent description.
+
 ## System Prompt Design
 
 The markdown body becomes the agent's system prompt. Write in second person, addressing the agent directly.
@@ -324,6 +408,46 @@ Ensure system prompt is complete:
 4. Test edge cases mentioned in prompt
 5. Confirm quality standards are met
 
+## Built-in Subagent Types
+
+Claude Code provides built-in subagent types with predefined tool sets. Custom agents (in `agents/`) supplement these:
+
+| Type | Tools Available | Use For |
+|------|----------------|---------|
+| Explore | Read, Grep, Glob (no Edit/Write) | Codebase exploration, search |
+| Plan | Read, Grep, Glob (no Edit/Write) | Architecture planning, design |
+| General-purpose | All tools | Complex multi-step tasks |
+| Bash | Bash only | Command execution |
+
+**Selection guide:**
+- Use **Explore** when agent only needs to read and search
+- Use **Plan** for design and planning tasks
+- Use **General-purpose** for tasks requiring file changes
+- Use **Bash** for pure command-line operations
+- Use **custom agents** (your `agents/` directory) for domain-specific behavior
+
+## Agent Storage and Loading Precedence
+
+Agents load from multiple locations with this priority (highest first):
+
+1. `--agents` CLI flag — Explicit path override
+2. `.claude/agents/` — Project-level agents
+3. `~/.claude/agents/` — User-level agents
+4. Plugin `agents/` directories — Plugin-provided agents
+
+When agents with the same name exist at multiple levels, the higher-priority location wins.
+
+## Background Agent Execution
+
+Agents can run in the background using Ctrl+B or the `run_in_background` parameter:
+
+**Design considerations for background-compatible agents:**
+- Ensure agents complete autonomously without needing user input
+- Use clear, self-contained instructions
+- Handle errors gracefully (no AskUserQuestion in background)
+- Output results to files or task updates rather than interactive responses
+- Test agents work correctly without real-time user interaction
+
 ## Quick Reference
 
 ### Minimal Agent
@@ -354,6 +478,11 @@ Output: [What to provide]
 | model | Yes | inherit/sonnet/opus/haiku | inherit |
 | color | Yes | Color name | blue |
 | tools | No | Array of tool names | ["Read", "Grep"] |
+| disallowedTools | No | Array of tool patterns | ["Edit", "Bash"] |
+| skills | No | Array of skill paths | ["skills/my-skill"] |
+| memory | No | Object with types | {user: true, project: true} |
+| hooks | No | Hook config object | {PreToolUse: [...]} |
+| permissionMode | No | Permission string | bypassPermissions |
 
 ### Best Practices
 
