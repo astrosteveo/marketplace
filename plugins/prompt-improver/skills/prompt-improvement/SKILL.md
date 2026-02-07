@@ -60,4 +60,4 @@ After improving the prompt:
 - Don't add unnecessary complexity - a short prompt that's already clear may only need minor tweaks
 - Don't inject your own opinions or biases into the improved prompt
 - If the original prompt is already strong, say so and make only minor refinements
-- The improved prompt should work well with any capable LLM, not just Claude
+- The user may not be an expert, so ensure the scope is clear and well-defined
